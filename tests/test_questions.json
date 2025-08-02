@@ -1,0 +1,44 @@
+[
+  {
+    "question_vi": "Tôi nên kiểm tra bộ phận nào nếu xe không nổ máy?",
+    "question_en": "Which part should I check if the car won't start?",
+    "expected_answer_vi": "Vui lòng kiểm tra bugi và hệ thống đánh lửa.",
+    "expected_answer_en": "Please check the spark plugs and ignition system."
+  },
+  {
+    "question_vi": "Tại sao đèn cảnh báo động cơ bật sáng?",
+    "question_en": "Why is the check engine light on?",
+    "expected_answer_vi": "Có thể do cảm biến hoặc hệ thống xả gặp sự cố.",
+    "expected_answer_en": "It may be due to a faulty sensor or exhaust system issue."
+  },
+  {
+    "question_vi": "Tại sao xe tôi bị rung khi dừng lại?",
+    "question_en": "Why is my car shaking when idling?",
+    "expected_answer_vi": "Có thể do bugi mòn hoặc vấn đề với hệ thống nhiên liệu.",
+    "expected_answer_en": "It could be worn spark plugs or a problem with the fuel system."
+  },
+  {
+    "question_vi": "Khi nào tôi cần thay dầu động cơ?",
+    "question_en": "When should I change my engine oil?",
+    "expected_answer_vi": "Thông thường sau mỗi 5.000 đến 10.000 km hoặc theo khuyến cáo của nhà sản xuất.",
+    "expected_answer_en": "Typically every 5,000 to 10,000 km or as recommended by the manufacturer."
+  },
+  {
+    "question_vi": "Tại sao phanh xe kêu cót két?",
+    "question_en": "Why are my brakes squeaking?",
+    "expected_answer_vi": "Có thể do má phanh mòn hoặc bụi bẩn bám vào.",
+    "expected_answer_en": "It could be worn brake pads or debris caught in the brake system."
+  },
+  {
+    "question_vi": "Tại sao xe không chuyển số mượt mà?",
+    "question_en": "Why is my car shifting gears roughly?",
+    "expected_answer_vi": "Có thể do hộp số cần bảo dưỡng hoặc dầu hộp số cạn.",
+    "expected_answer_en": "It might be due to a transmission service need or low transmission fluid."
+  },
+  {
+    "question_vi": "Làm thế nào để kiểm tra mức nước làm mát?",
+    "question_en": "How can I check my coolant level?",
+    "expected_answer_vi": "Mở nắp bình phụ và quan sát mức nước so với vạch MIN-MAX.",
+    "expected_answer_en": "Open the coolant reservoir cap and check the level against the MIN-MAX marks."
+  }
+]

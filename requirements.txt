@@ -1,0 +1,5 @@
+openai>=1.6.0
+python-dotenv
+tenacity>=8.0.1
+faiss-cpu
+sentence-transformers

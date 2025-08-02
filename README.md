@@ -1,95 +1,102 @@
+# DiagXpert: Automotive Diagnostic Chatbot
 
-# DiagXpert - AI Assistant for Automotive Manufacturing
-
-DiagXpert is a web-based chatbot powered by Azure OpenAI that helps answer technical questions in the automotive manufacturing domain.
-
----
-
-## 🚀 Features
-
-- Built with **Flask** (Python)
-- Uses **Azure OpenAI API** for GPT responses
-- Designed for **clear, step-by-step answers** in technical settings
+**DiagXpert** is an AI-powered chatbot application designed for diagnosing automotive errors. It is built with Flask, Azure OpenAI, and FAISS to perform semantic search and generate context-aware responses.
 
 ---
 
-## 📁 Project Structure
+## 🧠 Features
+
+- Semantic search using FAISS vector database.
+- Retrieval-Augmented Generation (RAG) with Azure GPT.
+- Simple web interface for user interaction.
+- Contextual answers in both English and Vietnamese.
+- Easily extendable to support more technical documents.
+
+---
+
+## 🗂 Project Structure
 
 ```
-.
-├── app.py              # Main Flask application
-├── .env                # Environment variables (not committed)
+DiagXpert/
+├── db/
+│   ├── __init__.py
+│   └── vector_db.py              # FAISS vector store logic
+├── static/
+│   └── style.css                 # Frontend styles
 ├── templates/
-│   └── index.html      # Frontend UI
-├── static/             # (Optional) CSS, JS, images
-├── requirements.txt    # Python dependencies
-└── README.md           # This file
+│   └── index.html                # Main HTML interface
+├── docs.pkl                      # Preprocessed document data
+├── faiss_index.pkl               # FAISS vector index
+├── main.py                       # Flask app entry point
+├── .env                          # Environment variables (API keys)
+├── requirements.txt              # Python dependencies
 ```
 
 ---
 
-## ⚙️ Prerequisites
+## ⚙️ Installation & Running the App
 
-- Python 3.7+
-- A deployed Azure OpenAI model (e.g., GPT-4o-mini)
-- Your Azure OpenAI:
-  - Endpoint
-  - API Key
-
----
-
-## 🧪 Setup Instructions
-
-### 1. Clone the Repository
+### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/<your-username>/DiagXpert.git
+git clone https://github.com/your-org/DiagXpert.git
 cd DiagXpert
-```
-
-### 2. Create Virtual Environment (optional but recommended)
-
-```bash
 python -m venv venv
-source venv/bin/activate      # On Mac/Linux
-venv\Scripts\activate         # On Windows
-```
-
-### 3. Install Dependencies
-
-```bash
+source venv/bin/activate         # Or venv\\Scripts\\activate on Windows
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
+### 2. Configure `.env`
 
-Create a `.env` file in the root directory:
+Create a `.env` file with your Azure OpenAI credentials:
 
-```ini
-AZURE_OPENAI_ENDPOINT=https://<your-resource-name>.openai.azure.com/
-AZURE_OPENAI_API_KEY=your-api-key-here
+```
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
 ```
 
-> 🔒 **Never commit your `.env` file.** It should be in `.gitignore`.
-
----
-
-## ▶️ Run the App
+### 3. Run the App
 
 ```bash
-python app.py
+python main.py
 ```
 
-Open browser:  
-📍 `http://127.0.0.1:5000/`
+Then visit [http://localhost:5000](http://localhost:5000) in your browser to use the chatbot.
 
 ---
 
-## 🧠 How It Works
+## 📘 Updating Data
 
-- Sends user question to Azure OpenAI (e.g., GPT-4o-mini)
-- Uses a system prompt to define assistant behavior
-- Returns assistant's response as JSON to frontend
+To add more technical data:
+
+1. Convert new documents into plain text or JSON.
+2. Run a script to generate embeddings and update `faiss_index.pkl` and `docs.pkl`.
+3. Restart the app to load the new data.
+
+---
+
+## 💬 Sample Q&A
+
+```text
+Q: The car won't start. What should I check?
+A: You should inspect the spark plugs and ignition system.
+
+Q: Xe không nổ máy, tôi nên kiểm tra gì?
+A: Bạn nên kiểm tra bugi và hệ thống đánh lửa.
+```
+
+---
+
+## ✅ System Requirements
+
+- Python >= 3.8
+- Azure OpenAI account
+- Required libraries:
+  - Flask
+  - openai
+  - faiss-cpu
+  - python-dotenv
 
 ---
 
