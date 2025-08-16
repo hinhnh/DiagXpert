@@ -1,174 +1,1104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DiagXpert – Automotive Assistant</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-
-    .chat-container {
-      max-width: 800px;
-      margin: 30px auto;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-
-    .chat-box {
-      height: 500px;
-      overflow-y: auto;
-      padding: 10px;
-      border: 1px solid #ddd;
-      background: #fafafa;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-
-    .message {
-      margin-bottom: 16px;
-    }
-
-    .user-msg p {
-      background-color: #e1f5fe;
-      display: inline-block;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 0;
-      max-width: 90%;
-      white-space: pre-wrap;
-    }
-
-    .bot-msg .bot-content {
-      background-color: #f1f8e9;
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-top: 5px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .bot-content ol {
-      padding-left: 20px;
-    }
-
-    .bot-content li {
-      margin-bottom: 8px;
-    }
-
-    .bot-content h3, .bot-content strong {
-      color: #2e7d32;
-      margin-bottom: 10px;
-    }
-
-    .input-area {
-      display: flex;
-      gap: 10px;
-    }
-
-    input#user-input {
-      flex-grow: 1;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #2e7d32;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #1b5e20;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagXpert - AI Automotive Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="chat-container">
-    <h1>DiagXpert</h1>
-
-    <!-- Display chat messages -->
-    <div class="chat-box" id="chat-box"></div>
-
-    <!-- User input area -->
-    <div class="input-area">
-      <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
-      <button onclick="sendMessage()">Gửi</button>
-    </div>
-  </div>
-
-  <script>
-    // Gửi câu hỏi và hiển thị phản hồi
-    async function sendMessage() {
-      const input = document.getElementById("user-input");
-      const chatBox = document.getElementById("chat-box");
-      const question = input.value.trim();
-      if (!question) return;
-
-      // Hiển thị câu hỏi của người dùng
-      chatBox.innerHTML += `
-        <div class="message user-msg">
-          <strong>Bạn:</strong> <p>${question}</p>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <!-- Hamburger Menu for Mobile -->
+                <button class="hamburger-menu" onclick="toggleSidebar()" aria-label="Toggle navigation menu">
+                    <div class="hamburger-icon"></div>
+                </button>
+                <div class="logo">
+                    <span class="logo-icon">🚗</span>
+                    <span class="logo-text">DiagXpert</span>
+                </div>
+                <button class="ai-badge" onclick="showFeatures()">
+                    <span>🤖</span>
+                    <span>AI Assistant</span>
+                </button>
+            </div>
+            <div class="user-profile">
+                <button class="about-link" onclick="showAbout()">About DiagXpert</button>
+                <button class="user-avatar" onclick="showSettings()">U</button>
+            </div>
         </div>
-      `;
-      input.value = "";
+    </div>
 
-      try {
-        // Gửi yêu cầu tới Flask backend
-        const response = await fetch("/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question }),
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="nav-item" onclick="showHome()">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Home</span>
+            </div>
+            <div class="nav-item" onclick="showChat()">
+                <span class="nav-icon">💬</span>
+                <span class="nav-text">Chat</span>
+            </div>
+            <div class="nav-item" onclick="showUpload()">
+                <span class="nav-icon">📁</span>
+                <span class="nav-text">Upload Documents</span>
+            </div>
+            <div class="nav-item" onclick="showFeatures()">
+                <span class="nav-icon">⭐</span>
+                <span class="nav-text">Features</span>
+            </div>
+            <div class="nav-item" onclick="showSettings()">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Welcome Section (Default View) -->
+            <div class="welcome-section" id="welcome-section">
+                <h1 class="welcome-title">🚗 DiagXpert AI Assistant</h1>
+                <p class="welcome-subtitle">
+                    Your intelligent automotive diagnostic companion powered by AI
+                </p>
+                
+                <!-- Main Feature Cards - Horizontal Layout -->
+                <div class="main-feature-cards">
+                    <div class="feature-card main-feature" onclick="showChat()">
+                        <div class="feature-icon">💬</div>
+                        <div class="feature-title">AI Chat</div>
+                        <div class="feature-desc">Ask questions about automotive diagnostics, maintenance, and troubleshooting</div>
+                    </div>
+                    <div class="feature-card main-feature" onclick="showUpload()">
+                        <div class="feature-icon">📁</div>
+                        <div class="feature-title">Document Upload</div>
+                        <div class="feature-desc">Upload automotive manuals, guides, and technical documents</div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Features - Full Width Below -->
+                <div class="workshop-features-section">
+                    <div class="feature-card workshop-feature" onclick="showWorkshop4Dashboard()">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Advanced Features</div>
+                        <div class="feature-desc">Advanced AI capabilities: RAG, Batching, Vector Search, and Function Calling</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Chat Section -->
+                <div class="quick-chat-section">
+                    <h3>💬 Quick Chat</h3>
+                    <p>Ask me anything about automotive diagnostics right here!</p>
+                    <div class="quick-chat-examples">
+                        <button class="example-btn" onclick="askExample('Pin ô tô có mấy loại?')">Pin ô tô có mấy loại?</button>
+                        <button class="example-btn" onclick="askExample('Làm sao kiểm tra phanh?')">Làm sao kiểm tra phanh?</button>
+                        <button class="example-btn" onclick="askExample('Động cơ quá nhiệt phải làm gì?')">Động cơ quá nhiệt phải làm gì?</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Interface (Hidden by default) -->
+            <div class="chat-container" id="chat-container" style="display: none;">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be added here -->
+                </div>
+            </div>
+
+            <!-- Advanced Features Dashboard (Hidden by default) -->
+            <div class="workshop4-dashboard" id="workshop4-dashboard" style="display: none;">
+                <div class="dashboard-header">
+                    <h2>🚀 Advanced Features: AI Capabilities</h2>
+                    <p>Building intelligent chatbots with RAG, Langchain & Function Calling</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- FAISS Vector Search -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="card-icon">🔍</span>
+                            <h3>FAISS Vector Search</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Fast similarity search with uploaded documents</p>
+                            <div class="card-stats">
+                                <span class="stat">Documents: <span id="doc-count">0</span></span>
+                                <span class="stat">Index Size: <span id="index-size">0</span></span>
+                            </div>
+                            <div class="search-input-group">
+                                <input type="text" id="vector-search-input" placeholder="Nhập câu hỏi về ô tô..." class="search-input">
+                                <button class="dashboard-btn" onclick="testVectorSearch()">🔍 Tìm kiếm</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Langchain Management -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="card-icon">🔗</span>
+                            <h3>Langchain Chains</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Prompt & Chain Management</p>
+                            <div class="card-stats">
+                                <span class="stat">Chains: <span id="chain-count">0</span></span>
+                                <span class="stat">Prompts: <span id="prompt-count">0</span></span>
+                            </div>
+                            <div class="search-input-group">
+                                <input type="text" id="langchain-input" placeholder="Nhập câu hỏi để test chain..." class="search-input">
+                                <button class="dashboard-btn" onclick="testLangchain()">🔗 Test Chain</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Function Calling -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="card-icon">⚙️</span>
+                            <h3>Function Calling</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Dynamic capabilities for automotive diagnostics</p>
+                            <div class="card-stats">
+                                <span class="stat">Functions: <span id="function-count">3</span></span>
+                                <span class="stat">Status: <span id="function-status">Ready</span></span>
+                            </div>
+                            <div class="search-input-group">
+                                <input type="text" id="function-input" placeholder="Nhập câu hỏi về chức năng..." class="search-input">
+                                <button class="dashboard-btn" onclick="testFunctionCalling()">⚙️ Test Function</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Prompt Management -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="card-icon">📝</span>
+                            <h3>Prompt Management</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Handle prompts effectively</p>
+                            <div class="card-stats">
+                                <span class="stat">Templates: <span id="template-count">0</span></span>
+                                <span class="stat">Active: <span id="active-prompts">0</span></span>
+                            </div>
+                            <div class="search-input-group">
+                                <input type="text" id="prompt-input" placeholder="Nhập câu hỏi để test prompt..." class="search-input">
+                                <button class="dashboard-btn" onclick="testPrompts()">📝 Test Prompt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Results -->
+                <div class="test-results" id="test-results" style="display: none;">
+                    <h3>🧪 Test Results</h3>
+                    <div class="result-content" id="result-content"></div>
+                </div>
+            </div>
+
+            <!-- Input Area - FIXED: Always visible at bottom -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        class="input-field" 
+                        id="user-input" 
+                        placeholder="Ask DiagXpert about automotive diagnostics, maintenance, or troubleshooting..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="send-button" onclick="sendMessage()" id="send-button">
+                        <span>📤</span>
+                        <span>Send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="upload-modal" id="upload-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📁 Upload Documents</h3>
+                <button class="close-btn" onclick="hideUpload()">×</button>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-title">Click to select files or drag and drop</div>
+                <div class="upload-description">Upload automotive manuals, guides, and technical documents</div>
+                <div class="file-support-text">Supports TXT, PDF, DOCX, DOC</div>
+            </div>
+            <input type="file" id="file-input" class="file-input" multiple accept=".txt,.pdf,.docx,.doc" onchange="handleFileSelect(event)">
+            <button class="upload-btn" onclick="uploadFiles()" id="upload-btn" disabled>Upload Files</button>
+            <div class="file-list" id="file-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentView = 'welcome';
+        let selectedFiles = [];
+        let isSubmitting = false; // Prevent double submission
+
+        // Navigation functions
+        function switchView(viewName) {
+            console.log(`🔄 Switching to view: ${viewName}`);
+            
+            // Update current view
+            currentView = viewName;
+            
+            // Handle view switching
+            if (viewName === 'welcome') {
+                // Show welcome section
+                const welcomeSection = document.getElementById('welcome-section');
+                const chatContainer = document.getElementById('chat-container');
+                const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+                
+                welcomeSection.style.display = 'flex';
+                welcomeSection.style.opacity = '1';
+                
+                chatContainer.style.display = 'none';
+                chatContainer.style.opacity = '0';
+                workshop4Dashboard.style.display = 'none';
+                workshop4Dashboard.style.opacity = '0';
+                
+                clearChat();
+                
+            } else if (viewName === 'chat') {
+                // Show chat container
+                const welcomeSection = document.getElementById('welcome-section');
+                const chatContainer = document.getElementById('chat-container');
+                const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+                
+                welcomeSection.style.display = 'none';
+                welcomeSection.style.opacity = '0';
+                
+                chatContainer.style.display = 'flex';
+                chatContainer.style.opacity = '1';
+                workshop4Dashboard.style.display = 'none';
+                workshop4Dashboard.style.opacity = '0';
+            } else if (viewName === 'workshop4') {
+                // Show advanced features dashboard
+                const welcomeSection = document.getElementById('welcome-section');
+                const chatContainer = document.getElementById('chat-container');
+                const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+                
+                welcomeSection.style.display = 'none';
+                welcomeSection.style.opacity = '0';
+                
+                chatContainer.style.display = 'none';
+                chatContainer.style.opacity = '0';
+                
+                workshop4Dashboard.style.display = 'flex';
+                workshop4Dashboard.style.opacity = '1';
+            }
+            
+            // Update sidebar
+            updateSidebar();
+            
+            console.log(`✅ Switched to ${viewName} view successfully`);
+        }
+
+        function showHome() {
+            currentView = 'welcome';
+            
+            // Hide other views
+            const welcomeSection = document.getElementById('welcome-section');
+            const chatContainer = document.getElementById('chat-container');
+            const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+            
+            chatContainer.style.display = 'none';
+            chatContainer.style.opacity = '0';
+            workshop4Dashboard.style.display = 'none';
+            workshop4Dashboard.style.opacity = '0';
+            
+            // Show welcome section
+            welcomeSection.style.display = 'flex';
+            setTimeout(() => {
+                welcomeSection.style.opacity = '1';
+            }, 50);
+            
+            // Show input container when in home view
+            const inputContainer = document.querySelector('.input-container');
+            if (inputContainer) {
+                inputContainer.style.display = 'block';
+            }
+            
+            updateSidebar();
+        }
+
+        function askExample(question) {
+            // Set the question in input field
+            const input = document.getElementById('user-input');
+            input.value = question;
+            
+            // Switch to chat view
+            showChat();
+            
+            // Send the message automatically
+            setTimeout(() => {
+                sendMessage();
+            }, 100);
+        }
+
+        function showChat() {
+            currentView = 'chat';
+            
+            // Hide other views
+            const welcomeSection = document.getElementById('welcome-section');
+            const chatContainer = document.getElementById('chat-container');
+            const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+            
+            welcomeSection.style.display = 'none';
+            welcomeSection.style.opacity = '0';
+            workshop4Dashboard.style.display = 'none';
+            workshop4Dashboard.style.opacity = '0';
+            
+            // Show chat container
+            chatContainer.style.display = 'flex';
+            setTimeout(() => {
+                chatContainer.style.opacity = '1';
+            }, 50);
+            
+            // Show input container when in chat view
+            const inputContainer = document.querySelector('.input-container');
+            if (inputContainer) {
+                inputContainer.style.display = 'block';
+            }
+            
+            updateSidebar();
+        }
+
+        function showWorkshop4Dashboard() {
+            currentView = 'workshop4';
+            
+            // Hide other views
+            const welcomeSection = document.getElementById('welcome-section');
+            const chatContainer = document.getElementById('chat-container');
+            const workshop4Dashboard = document.getElementById('workshop4-dashboard');
+            
+            welcomeSection.style.display = 'none';
+            welcomeSection.style.opacity = '0';
+            chatContainer.style.display = 'none';
+            chatContainer.style.opacity = '0';
+            
+            // Show workshop 4 dashboard
+            workshop4Dashboard.style.display = 'block';
+            setTimeout(() => {
+                workshop4Dashboard.style.opacity = '1';
+            }, 50);
+            
+            // Hide input container when in dashboard
+            const inputContainer = document.querySelector('.input-container');
+            if (inputContainer) {
+                inputContainer.style.display = 'none';
+            }
+            
+            updateSidebar();
+        }
+
+        function clearChat() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+        }
+
+        function showUpload() {
+            document.getElementById('upload-modal').style.display = 'flex';
+        }
+
+        function hideUpload() {
+            document.getElementById('upload-modal').style.display = 'none';
+        }
+
+        function showFeatures() {
+            alert('🚗 DiagXpert Features:\n\n• AI-Powered Automotive Diagnostics\n• Document Upload & Processing\n• RAG (Retrieval-Augmented Generation)\n• Batching Techniques\n• Text-to-Speech\n• Vector Database Management');
+        }
+
+        function showSettings() {
+            alert('⚙️ Settings:\n\n• TTS Configuration\n• Vector DB Settings\n• Upload Preferences\n• Chat History\n• System Status');
+        }
+
+        function showAbout() {
+            alert('DiagXpert is an AI-powered automotive diagnostic assistant designed to help users understand and troubleshoot their vehicles. Powered by advanced AI models, it can answer questions about vehicle maintenance, diagnostics, and technical details. Whether you are a car enthusiast or a professional mechanic, DiagXpert is here to assist you.');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebar.classList.contains('show')) {
+                // Close sidebar
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+                console.log('🔄 Sidebar closed');
+            } else {
+                // Open sidebar
+                sidebar.classList.add('show');
+                overlay.classList.add('show');
+                console.log('🔄 Sidebar opened');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            console.log('🔄 Sidebar closed by overlay');
+        }
+
+        function updateSidebar() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (currentView === 'welcome') {
+                document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+            } else if (currentView === 'chat') {
+                document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+            } else if (currentView === 'workshop4') {
+                document.querySelector('.nav-item:nth-child(5)').classList.add('active'); // Assuming Settings is the 5th item
+            }
+        }
+
+        // Chat functions
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+    async function sendMessage() {
+            // Prevent double submission
+            if (isSubmitting) {
+                console.log('⚠️ Message already being sent, please wait...');
+                return;
+            }
+            
+            const input = document.getElementById('user-input');
+            const chatMessages = document.getElementById('chat-messages');
+      const question = input.value.trim();
+            
+            if (!question) return;
+
+            // Set submitting flag
+            isSubmitting = true;
+            
+            // Clear input immediately to prevent double submission
+            input.value = '';
+            
+            // If we're in welcome view, switch to chat view first
+            if (currentView === 'welcome') {
+                showChat();
+            }
+            
+            // Add user message
+            const userMessage = createMessage('user', question);
+            chatMessages.appendChild(userMessage);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Send to backend
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
         });
 
         const data = await response.json();
 
-        // Hiển thị câu trả lời từ chatbot
-        chatBox.innerHTML += `
-          <div class="message bot-msg">
-            <strong>DiagXpert:</strong>
-            <div class="bot-content">${formatResponse(data.answer)}</div>
-          </div>
-        `;
-      } catch (err) {
-        chatBox.innerHTML += `
-          <div class="message bot-msg">
-            <div class="bot-content">❌ Lỗi khi gửi yêu cầu đến server.</div>
-          </div>
-        `;
+                // Add AI response
+                const aiMessage = createMessage('ai', data.answer);
+                chatMessages.appendChild(aiMessage);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMessage = createMessage('ai', '❌ Error: Could not connect to server');
+                chatMessages.appendChild(errorMessage);
+            } finally {
+                // Reset submitting flag
+                isSubmitting = false;
+            }
+        }
+
+        function createMessage(type, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = type === 'user' ? 'U' : 'AI';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Add message text
+            const messageText = document.createElement('div');
+            messageText.className = 'message-text';
+            
+            if (type === 'ai') {
+                // Format AI response with proper HTML
+                messageText.innerHTML = formatResponseText(content);
+            } else {
+                // User message - plain text
+                messageText.textContent = content;
+            }
+            
+            contentDiv.appendChild(messageText);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            
+            // Add TTS button for AI messages
+            if (type === 'ai') {
+                const ttsButton = document.createElement('button');
+                ttsButton.className = 'tts-button';
+                ttsButton.innerHTML = '🔊 Speak';
+                ttsButton.onclick = () => speakText(content);
+                contentDiv.appendChild(ttsButton);
+            }
+            
+            return messageDiv;
+        }
+
+        // TTS functions
+        async function speakText(text) {
+            try {
+                console.log('🎤 Starting TTS for:', text.substring(0, 50) + '...');
+                
+                // Clear any existing audio buttons first
+                clearExistingAudioButtons();
+                
+                // Show loading message
+                showTTSMessage('🔄 Đang tạo audio...');
+                
+                // Try to play audio directly - only one API call
+                try {
+                    const response = await fetch('/tts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`TTS failed: ${response.status}`);
+                    }
+
+                    const audioBlob = await response.blob();
+                    console.log('✅ Audio created successfully:', audioBlob.size, 'bytes');
+                    console.log('✅ Audio type:', audioBlob.type);
+                    
+                    // Detect audio format from response headers
+                    const contentType = response.headers.get('content-type');
+                    const audioFormat = contentType ? contentType.split('/')[1] : 'unknown';
+                    console.log('✅ Detected audio format:', audioFormat);
+                    
+                    // Create a more robust audio URL
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Clear loading message
+                    clearExistingAudioButtons();
+                    
+                    // Create audio element with better error handling
+                    const audio = new Audio();
+                    audio.volume = 1.0;
+                    
+                    // Set up event listeners BEFORE setting src
+                    audio.addEventListener('canplaythrough', () => {
+                        console.log('🎵 Audio ready to play');
+                        showTTSMessage('✅ Audio sẵn sàng phát!');
+                    });
+                    
+                    audio.addEventListener('error', (e) => {
+                        console.error('❌ Audio error:', e);
+                        console.error('❌ Audio error details:', e.target.error);
+                        showTTSMessage('❌ Lỗi phát audio. Vui lòng thử lại.');
+                        showAudioPlayButton(audioUrl, audioFormat);
+                    });
+                    
+                    audio.addEventListener('loadstart', () => {
+                        console.log('🔄 Audio loading started');
+                    });
+                    
+                    audio.addEventListener('loadeddata', () => {
+                        console.log('📊 Audio data loaded');
+                    });
+                    
+                    audio.addEventListener('canplay', () => {
+                        console.log('🎵 Audio can play');
+                    });
+                    
+                    // Set audio source AFTER event listeners
+                    audio.src = audioUrl;
+                    
+                    // Wait for audio to be ready
+                    await new Promise((resolve, reject) => {
+                        audio.addEventListener('canplaythrough', resolve, { once: true });
+                        audio.addEventListener('error', reject, { once: true });
+                        
+                        // Timeout after 5 seconds
+                        setTimeout(() => reject(new Error('Audio loading timeout')), 5000);
+                    });
+                    
+                    // Try to play with user interaction context
+                    try {
+                        await audio.play();
+                        console.log('🎵 Audio playing successfully');
+                        showTTSMessage('🎵 Đang phát audio...');
+                        
+                        // Clear message after audio finishes
+                        audio.addEventListener('ended', () => {
+                            clearExistingAudioButtons();
+                        });
+                        
+                    } catch (playError) {
+                        console.error('❌ Audio play failed:', playError);
+                        
+                        if (playError.name === 'NotAllowedError') {
+                            showTTSMessage('⚠️ Browser chặn autoplay. Click nút Play để phát audio.');
+                            // Show manual play button only for autoplay blocked
+                            showAudioPlayButton(audioUrl, audioFormat);
+                        } else if (playError.name === 'AbortError') {
+                            showTTSMessage('✅ Audio đã phát xong!');
+                            clearExistingAudioButtons();
+                        } else {
+                            showTTSMessage('❌ Không thể phát audio. Vui lòng thử lại.');
+                            // Show manual play button for other errors
+                            showAudioPlayButton(audioUrl, audioFormat);
+                        }
+                    }
+                        
+                } catch (error) {
+                    console.error('❌ TTS error:', error);
+                    showTTSMessage('❌ TTS không khả dụng. Vui lòng thử lại sau.');
+                }
+                
+            } catch (error) {
+                console.error('❌ TTS function error:', error);
+                showTTSMessage('❌ Lỗi TTS. Vui lòng thử lại sau.');
+            }
+        }
+
+        function clearExistingAudioButtons() {
+            // Remove all existing audio play buttons and messages
+            const existingElements = document.querySelectorAll('.play-audio-btn, .audio-playback-info, .tts-message');
+            existingElements.forEach(el => el.remove());
+        }
+
+        function showTTSMessage(message) {
+            // Clear any existing elements first
+            clearExistingAudioButtons();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'tts-message';
+            messageDiv.style.marginTop = '12px';
+            messageDiv.style.padding = '0.75rem';
+            messageDiv.style.background = '#fef2f2';
+            messageDiv.style.border = '1px solid #fecaca';
+            messageDiv.style.borderRadius = '0.5rem';
+            messageDiv.style.color = '#dc2626';
+            messageDiv.style.fontSize = '0.875rem';
+            messageDiv.textContent = message;
+            
+            // Add to the last AI message
+            const lastMessage = document.querySelector('.message.ai:last-child .message-content');
+            if (lastMessage) {
+                lastMessage.appendChild(messageDiv);
+            }
+        }
+
+        function showAudioPlayButton(audioUrl, format) {
+            // Only show this as last resort if autoplay fails
+            clearExistingAudioButtons();
+            
+            const button = document.createElement('button');
+            button.className = 'play-audio-btn';
+            button.innerHTML = `🔊 Play ${format.toUpperCase()}`;
+            button.onclick = async () => {
+                try {
+                    // Create new audio context for manual play
+                    const audio = new Audio();
+                    audio.volume = 1.0;
+                    
+                    // Set up event listeners
+                    audio.addEventListener('canplaythrough', () => {
+                        console.log('🎵 Manual play: Audio ready');
+                    });
+                    
+                    audio.addEventListener('error', (e) => {
+                        console.error('❌ Manual play error:', e);
+                        console.error('❌ Manual play error details:', e.target.error);
+                    });
+                    
+                    // Set source and play
+                    audio.src = audioUrl;
+                    await audio.play();
+                    console.log('🎵 Manual play successful');
+                    
+                } catch (e) {
+                    console.error('❌ Manual play failed:', e);
+                    showTTSMessage('❌ Không thể phát audio. Vui lòng thử lại.');
+                }
+            };
+            
+            const container = document.createElement('div');
+            container.className = 'audio-playback-info';
+            container.style.marginTop = '12px';
+            container.appendChild(button);
+            container.innerHTML += `<br><small style="color: #666; font-size: 12px;">Format: ${format.toUpperCase()} | Browser autoplay blocked, click to play manually</small>`;
+            
+            // Add to the last AI message
+            const lastMessage = document.querySelector('.message.ai:last-child .message-content');
+            if (lastMessage) {
+                lastMessage.appendChild(container);
+            }
+        }
+        
+        // Test audio context function
+        function testAudioContext() {
+            try {
+                // Create audio context
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('✅ Audio Context created successfully');
+                console.log('✅ Audio Context state:', audioContext.state);
+                
+                if (audioContext.state === 'suspended') {
+                    console.log('⚠️ Audio Context suspended, needs user interaction');
+                    showTTSMessage('⚠️ Audio Context bị suspended. Click để kích hoạt.');
+                }
+                
+                return audioContext;
+            } catch (error) {
+                console.error('❌ Audio Context creation failed:', error);
+                return null;
+            }
+        }
+
+        // File handling
+        function handleFileSelect(event) {
+            selectedFiles = Array.from(event.target.files);
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+                
+                const fileIcon = document.createElement('span');
+                fileIcon.className = 'file-icon';
+                fileIcon.textContent = getFileIcon(file.name);
+                
+                const fileDetails = document.createElement('div');
+                fileDetails.className = 'file-details';
+                
+                const fileName = document.createElement('div');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                
+                const fileSize = document.createElement('div');
+                fileSize.className = 'file-size';
+                fileSize.textContent = formatFileSize(file.size);
+                
+                fileDetails.appendChild(fileName);
+                fileDetails.appendChild(fileSize);
+                fileInfo.appendChild(fileIcon);
+                fileInfo.appendChild(fileDetails);
+                
+                const removeFile = document.createElement('button');
+                removeFile.className = 'remove-file';
+                removeFile.textContent = '×';
+                removeFile.onclick = () => removeFileFromList(index);
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeFile);
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFileFromList(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateUploadButton() {
+            const uploadBtn = document.getElementById('upload-btn');
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch (ext) {
+                case 'pdf': return '📄';
+                case 'docx': return '📝';
+                case 'doc': return '📝';
+                case 'txt': return '📄';
+                default: return '📁';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`✅ Successfully uploaded ${result.uploaded_count} files!`);
+                    hideUpload();
+                    selectedFiles = [];
+                    updateFileList();
+                    updateUploadButton();
+        } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('❌ Upload failed. Please try again.');
+            }
+        }
+
+        // Advanced Features Dashboard functions
+        function showTestResults() {
+            document.getElementById('test-results').style.display = 'block';
+            document.getElementById('result-content').innerHTML = ''; // Clear previous results
+        }
+
+        function testVectorSearch() {
+            const input = document.getElementById('vector-search-input');
+            const query = input.value.trim();
+            
+            if (!query) {
+                alert('Vui lòng nhập câu hỏi để tìm kiếm!');
+                input.focus();
+                return;
+            }
+            
+            showTestResults();
+            
+            fetch('/workshop4/vector_search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+                } else {
+                    document.getElementById('result-content').innerHTML = `
+                        <div class="success">✅ ${data.answer}</div>
+                        <div class="details">
+                            <h4>📄 Tài liệu tìm được:</h4>
+                            ${data.documents.map(doc => `<p>• ${doc.page_content}</p>`).join('')}
+                            <p><strong>Độ tương đồng:</strong> ${(data.similarity_score * 100).toFixed(1)}%</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            });
+        }
+
+        function testLangchain() {
+            const input = document.getElementById('langchain-input');
+            const query = input.value.trim();
+            
+            if (!query) {
+                alert('Vui lòng nhập câu hỏi để test chain!');
+                input.focus();
+        return;
       }
+            
+            showTestResults();
+            
+            fetch('/workshop4/langchain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+                } else {
+                    document.getElementById('result-content').innerHTML = `
+                        <div class="success">✅ ${data.answer}</div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            });
+        }
 
-      // Scroll xuống cuối khung chat
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+        function testFunctionCalling() {
+            const input = document.getElementById('function-input');
+            const query = input.value.trim();
+            
+            if (!query) {
+                alert('Vui lòng nhập câu hỏi để test function!');
+                input.focus();
+                return;
+            }
+            
+            showTestResults();
+            
+            fetch('/workshop4/function_calling', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+                } else {
+                    document.getElementById('result-content').innerHTML = `
+                        <div class="success">✅ ${data.answer}</div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            });
+        }
 
-    // Format HTML nếu câu trả lời có list hoặc linebreak
-    function formatResponse(text) {
-      const html = text
-        .replace(/\n{2,}/g, "<br><br>")             // đoạn mới
-        .replace(/\n/g, "<br>")                     // xuống dòng
-        .replace(/(?:^|\n)(\d+)\.\s/g, "<br>$1. ")  // đánh số
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); // in đậm markdown
+        function testPrompts() {
+            const input = document.getElementById('prompt-input');
+            const query = input.value.trim();
+            
+            if (!query) {
+                alert('Vui lòng nhập câu hỏi để test prompt!');
+                input.focus();
+                return;
+            }
+            
+            showTestResults();
+            
+            fetch('/workshop4/prompt_management', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+        } else {
+                    document.getElementById('result-content').innerHTML = `
+                        <div class="success">✅ ${data.answer}</div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            });
+        }
 
-      return html;
-    }
+        // Format text response to display properly
+        function formatResponseText(text) {
+            if (!text) return '';
+            
+            // Replace \n with <br> tags for proper line breaks
+            let formattedText = text.replace(/\\n/g, '<br>');
+            
+            // Replace bullet points with proper HTML
+            formattedText = formattedText.replace(/\\u2022/g, '•');
+            formattedText = formattedText.replace(/\\u2022/g, '•');
+            
+            // Replace other common escape sequences
+            formattedText = formattedText.replace(/\\"/g, '"');
+            formattedText = formattedText.replace(/\\'/g, "'");
+            
+            return formattedText;
+        }
+        
+        // Update message display function
+        function displayMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? 'U' : 'AI';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            if (isUser) {
+                content.textContent = message;
+            } else {
+                // Format AI response with proper HTML
+                content.innerHTML = formatResponseText(message);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            
+            const chatContainer = document.querySelector('.chat-container');
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial state
+            currentView = 'welcome';
+            
+            // Ensure welcome section is visible
+            document.getElementById('welcome-section').style.display = 'flex';
+            document.getElementById('welcome-section').style.opacity = '1';
+            
+            // Ensure chat container is hidden
+            document.getElementById('chat-container').style.display = 'none';
+            document.getElementById('chat-container').style.opacity = '0';
+
+            // Ensure workshop 4 dashboard is hidden
+            document.getElementById('workshop4-dashboard').style.display = 'none';
+            document.getElementById('workshop4-dashboard').style.opacity = '0';
+            
+            updateSidebar();
+            console.log('🚗 DiagXpert loaded successfully!');
+        });
   </script>
 </body>
 </html>

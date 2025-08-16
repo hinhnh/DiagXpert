@@ -1,0 +1,37 @@
+HỆ THỐNG ĐIỀU HÒA Ô TÔ
+
+TỔNG QUAN
+Hệ thống điều hòa không khí trong ô tô giúp duy trì nhiệt độ và độ ẩm lý tưởng trong cabin.
+
+CÁC THÀNH PHẦN CHÍNH
+1. Máy nén (Compressor)
+   - Nén môi chất lạnh
+   - Được điều khiển bởi động cơ
+   - Có thể bị hỏng do thiếu dầu
+
+2. Bình ngưng (Condenser)
+   - Làm mát môi chất lạnh
+   - Thường đặt phía trước xe
+   - Cần làm sạch định kỳ
+
+3. Bình bay hơi (Evaporator)
+   - Hấp thụ nhiệt từ cabin
+   - Tạo ra không khí mát
+   - Có thể bị đóng băng
+
+4. Van tiết lưu (Expansion Valve)
+   - Điều chỉnh áp suất môi chất
+   - Kiểm soát nhiệt độ
+   - Cần thay thế khi bị tắc
+
+CÁC VẤN ĐỀ THƯỜNG GẶP
+- Không mát: Kiểm tra môi chất, máy nén
+- Mùi hôi: Thay bộ lọc cabin
+- Tiếng ồn: Kiểm tra quạt, máy nén
+- Rò rỉ: Kiểm tra các ống dẫn
+
+BẢO DƯỠNG ĐỊNH KỲ
+- Thay bộ lọc cabin mỗi 15,000km
+- Kiểm tra môi chất mỗi 2 năm
+- Làm sạch bình ngưng mỗi năm
+- Kiểm tra quạt mỗi 30,000km

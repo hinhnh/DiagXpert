@@ -1,5 +1,92 @@
-openai>=1.6.0
-python-dotenv
-tenacity>=8.0.1
-faiss-cpu
-sentence-transformers
+# DiagXpert - AI Automotive Diagnostic Assistant
+# Professional requirements with version pinning and categorization
+
+# ============================================================================
+# CORE DEPENDENCIES
+# ============================================================================
+
+# Web Framework
+Flask==2.3.3
+
+# AI & Machine Learning
+openai==1.3.0
+faiss-cpu==1.7.4
+sentence-transformers==2.2.2
+
+# ============================================================================
+# TEXT-TO-SPEECH
+# ============================================================================
+
+# Primary TTS Engine
+pyttsx3==2.90
+
+# Alternative TTS Engines (optional)
+# TTS>=0.22.0,<1.0.0  # Coqui TTS
+# gTTS>=2.3.0,<3.0.0  # Google TTS
+
+# ============================================================================
+# UTILITIES & CONFIGURATION
+# ============================================================================
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# HTTP & API
+requests>=2.31.0,<3.0.0
+tenacity==8.2.3
+
+# ============================================================================
+# DEVELOPMENT & TESTING (optional)
+# ============================================================================
+
+# Code Quality
+# black>=23.0.0,<24.0.0
+# flake8>=6.0.0,<7.0.0
+# mypy>=1.5.0,<2.0.0
+
+# Testing
+# pytest>=7.4.0,<8.0.0
+# pytest-cov>=4.1.0,<5.0.0
+
+# ============================================================================
+# WORKSHOP 4 DEPENDENCIES (optional)
+# ============================================================================
+
+# Langchain & RAG
+langchain==0.0.350
+langchain-openai==0.0.2
+langchain-community==0.0.10
+# langchain-tavily>=0.1.0,<1.0.0
+# langgraph>=0.1.0,<1.0.0
+
+# Vector Databases
+# pinecone-client>=3.0.0,<4.0.0
+
+# Data Processing
+# pydantic>=2.0.0,<3.0.0
+
+# ============================================================================
+# SYSTEM DEPENDENCIES
+# ============================================================================
+
+# Audio Processing (may be required on some systems)
+# soundfile>=0.12.0,<1.0.0
+# numpy>=1.24.0,<2.0.0
+
+# ============================================================================
+# INSTALLATION NOTES
+# ============================================================================
+
+# For development with all features:
+# pip install -r requirements.txt
+
+# For production (core only):
+# pip install Flask openai faiss-cpu sentence-transformers pyttsx3 python-dotenv requests tenacity
+
+# For Workshop 4 features:
+# pip install langchain langchain-openai langchain-community langchain-tavily langgraph pinecone-client pydantic
+
+# FILE UPLOAD & PROCESSING
+PyPDF2==3.0.1
+python-docx==1.2.0
+werkzeug==2.3.7
