@@ -1,102 +1,142 @@
-# DiagXpert: Automotive Diagnostic Chatbot
+# DiagXpert – AI Chatbot for Automotive Diagnostics
 
-**DiagXpert** is an AI-powered chatbot application designed for diagnosing automotive errors. It is built with Flask, Azure OpenAI, and FAISS to perform semantic search and generate context-aware responses.
-
----
-
-## 🧠 Features
-
-- Semantic search using FAISS vector database.
-- Retrieval-Augmented Generation (RAG) with Azure GPT.
-- Simple web interface for user interaction.
-- Contextual answers in both English and Vietnamese.
-- Easily extendable to support more technical documents.
+DiagXpert is a web application built with **Flask**, integrated with **Azure OpenAI** and **FAISS vector database**, to assist engineers and technicians in retrieving technical information and diagnosing vehicle issues. The system can process DOCX and PDF files, extract content, store it in a vector database, and answer questions based on the stored content.
 
 ---
 
-## 🗂 Project Structure
+## 🔹 Features
+
+- Upload and process DOCX and PDF files.
+- Split text into smaller chunks for embedding.
+- Store and query information using **FAISS vector database**.
+- AI chatbot answers technical questions based on stored content.
+- Uses Azure OpenAI for **embeddings** and **chat completion**.
+
+---
+
+## 🛠️ System Requirements
+
+- Python >= 3.10
+- Install required libraries:
+  ```bash
+  pip install flask python-dotenv openai PyPDF2 python-docx werkzeug
+  ```
+- Azure OpenAI account with endpoints and keys for Chat completions and Embeddings.
+
+---
+
+## ⚙️ Environment Configuration
+
+Create a `.env` file with:
+
+```env
+AZURE_OPENAI_ENDPOINT_CHAT=<your_chat_endpoint>
+AZURE_OPENAI_API_KEY_CHAT=<your_chat_api_key>
+AZURE_OPENAI_ENDPOINT_EMBED=<your_embedding_endpoint>
+AZURE_OPENAI_API_KEY_EMBED=<your_embedding_api_key>
+AZURE_OPENAI_CHAT_MODEL=GPT-4o-mini
+AZURE_OPENAI_MODEL_EMBED=text-embedding-3-small
+```
+
+---
+
+## 📝 Project Structure
 
 ```
-DiagXpert/
-├── db/
-│   ├── __init__.py
-│   └── vector_db.py              # FAISS vector store logic
-├── static/
-│   └── style.css                 # Frontend styles
-├── templates/
-│   └── index.html                # Main HTML interface
-├── docs.pkl                      # Preprocessed document data
-├── faiss_index.pkl               # FAISS vector index
-├── main.py                       # Flask app entry point
-├── .env                          # Environment variables (API keys)
-├── requirements.txt              # Python dependencies
+project/
+│
+├─ app.py                # Main Flask app
+├─ db/
+│  └─ vector_db.py       # FAISS vector DB management class
+├─ templates/
+│  └─ index.html         # Front-end web page
+├─ faiss_index.pkl        # FAISS index
+├─ docs.pkl               # Stored document content
+├─ metadata.pkl           # Chunk metadata
+└─ .env                  # Environment variables
 ```
 
 ---
 
-## ⚙️ Installation & Running the App
-
-### 1. Clone and install dependencies
+## 🚀 Running the Application
 
 ```bash
-git clone https://github.com/your-org/DiagXpert.git
-cd DiagXpert
-python -m venv venv
-source venv/bin/activate         # Or venv\\Scripts\\activate on Windows
-pip install -r requirements.txt
+python app.py
 ```
 
-### 2. Configure `.env`
-
-Create a `.env` file with your Azure OpenAI credentials:
-
-```
-AZURE_OPENAI_API_KEY=your_api_key
-AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
-```
-
-### 3. Run the App
-
-```bash
-python main.py
-```
-
-Then visit [http://localhost:5000](http://localhost:5000) in your browser to use the chatbot.
+- Access the application at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ---
 
-## 📘 Updating Data
+## 📂 Uploading Files
 
-To add more technical data:
+- Endpoint: `POST /insert_file`
+- Supported formats: `.docx`, `.pdf`
+- Process:
+  1. Save temporary file.
+  2. Extract content.
+  3. Split content into chunks (\~1000 characters per chunk).
+  4. Generate embeddings and insert into FAISS DB.
+  5. Delete temporary file.
 
-1. Convert new documents into plain text or JSON.
-2. Run a script to generate embeddings and update `faiss_index.pkl` and `docs.pkl`.
-3. Restart the app to load the new data.
+**Response example:**
 
----
-
-## 💬 Sample Q&A
-
-```text
-Q: The car won't start. What should I check?
-A: You should inspect the spark plugs and ignition system.
-
-Q: Xe không nổ máy, tôi nên kiểm tra gì?
-A: Bạn nên kiểm tra bugi và hệ thống đánh lửa.
+```json
+{
+  "message": "✅ Inserted 5 chunks from example.pdf"
+}
 ```
 
 ---
 
-## ✅ System Requirements
+## 💬 Asking Questions
 
-- Python >= 3.8
-- Azure OpenAI account
-- Required libraries:
-  - Flask
-  - openai
-  - faiss-cpu
-  - python-dotenv
+- Endpoint: `POST /ask`
+- Request body example:
+
+```json
+{
+  "question": "How to reset the ECU?"
+}
+```
+
+- Process:
+  1. Query the vector DB with top 3 relevant chunks.
+  2. Send context and user question to Azure OpenAI Chat model.
+  3. Return answer based on context.
+
+**Response example:**
+
+```json
+{
+  "answer": "To reset the ECU, you need to..."
+}
+```
 
 ---
+
+## 🔹 Logging & Debug
+
+- Tracks:
+  - File upload
+  - Chunking
+  - Embedding creation
+  - Database queries
+  - OpenAI Chat calls
+
+---
+
+## ⚠️ Notes
+
+- Maximum file size: 16 MB.
+- If vector DB files (`faiss_index.pkl`, `docs.pkl`, `metadata.pkl`) are missing, an empty database is initialized.
+- Only `.docx` and `.pdf` files are supported.
+
+---
+
+## 🔧 Extensibility
+
+- Add support for other file types: TXT, CSV, etc.
+- Increase `top_k` chunks when querying.
+- Enhance front-end interface for better user experience.
 
