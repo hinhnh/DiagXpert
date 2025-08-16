@@ -3,3 +3,7 @@ python-dotenv
 tenacity>=8.0.1
 faiss-cpu
 sentence-transformers
+Flask>=3.0.0
+python-docx
+PyPDF2
+Werkzeug>=3.0.0

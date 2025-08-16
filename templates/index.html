@@ -13,12 +13,26 @@
     }
 
     .chat-container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 30px auto;
       background-color: #ffffff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 20px;
+    }
+
+    .sidebar {
+      width: 300px;
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      border-right: 1px solid #ddd;
+    }
+
+    .main-chat {
+      flex: 1;
     }
 
     h1 {
@@ -103,29 +117,241 @@
     button:hover {
       background-color: #1b5e20;
     }
+
+    .session-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .session-item {
+      padding: 8px;
+      margin-bottom: 5px;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .session-item:hover {
+      background-color: #e3f2fd;
+    }
+
+    .session-item.active {
+      background-color: #2e7d32;
+      color: white;
+    }
+
+    .session-controls {
+      margin-bottom: 15px;
+    }
+
+    .session-controls button {
+      padding: 8px 12px;
+      font-size: 14px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
   <div class="chat-container">
-    <h1>DiagXpert</h1>
-
-    <!-- Display chat messages -->
-    <div class="chat-box" id="chat-box"></div>
-
-    <!-- User input area for chat -->
-    <div class="input-area">
-      <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
-      <button onclick="sendMessage()">Gửi</button>
+    <!-- Sidebar for chat history -->
+    <div class="sidebar">
+      <h3>Lịch sử Chat</h3>
+      
+      <div class="session-controls">
+        <button onclick="newChatSession()">Phiên mới</button>
+        <button onclick="loadChatSessions()">Tải lại</button>
+        <button onclick="clearAllHistory()" style="background-color: #d32f2f;">Xóa tất cả</button>
+      </div>
+      
+      <div class="session-list" id="session-list">
+        <!-- Sessions will be loaded here -->
+      </div>
     </div>
 
-    <!-- File upload area -->
-    <div class="input-area">
-      <input type="file" id="file-input" />
-      <button onclick="uploadFile()">Upload File</button>
+    <!-- Main chat area -->
+    <div class="main-chat">
+      <h1>DiagXpert</h1>
+
+      <!-- Display chat messages -->
+      <div class="chat-box" id="chat-box"></div>
+
+      <!-- User input area for chat -->
+      <div class="input-area">
+        <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
+        <button onclick="sendMessage()">Gửi</button>
+      </div>
+
+      <!-- File upload area -->
+      <div class="input-area">
+        <input type="file" id="file-input" />
+        <button onclick="uploadFile()">Upload File</button>
+      </div>
     </div>
   </div>
 
   <script>
+    let currentSessionId = null;
+
+    // =========================
+    // Initialize on page load
+    // =========================
+    document.addEventListener('DOMContentLoaded', function() {
+      loadChatSessions();
+      loadCurrentChatHistory();
+      
+      // Enter key để gửi tin nhắn
+      document.getElementById('user-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    });
+
+    // =========================
+    // Chat Sessions Management
+    // =========================
+    async function loadChatSessions() {
+      try {
+        const response = await fetch("/chat/sessions");
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentSessionId = data.current_session_id;
+          displaySessions(data.sessions);
+        } else {
+          console.error("Error loading sessions:", data.error);
+        }
+      } catch (err) {
+        console.error("Error loading sessions:", err);
+      }
+    }
+
+    function displaySessions(sessions) {
+      const sessionList = document.getElementById("session-list");
+      sessionList.innerHTML = "";
+
+      if (sessions.length === 0) {
+        sessionList.innerHTML = '<div style="color: #666; font-style: italic;">Chưa có phiên chat nào</div>';
+        return;
+      }
+
+      sessions.forEach(session => {
+        const sessionItem = document.createElement("div");
+        sessionItem.className = `session-item ${session.session_id === currentSessionId ? 'active' : ''}`;
+        
+        const createdDate = new Date(session.created_at).toLocaleDateString('vi-VN');
+        const createdTime = new Date(session.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+        
+        sessionItem.innerHTML = `
+          <div style="font-weight: bold;">${createdDate} ${createdTime}</div>
+          <div style="font-size: 12px; color: #666;">${session.message_count} tin nhắn</div>
+        `;
+        
+        sessionItem.onclick = () => switchToSession(session.session_id);
+        sessionList.appendChild(sessionItem);
+      });
+    }
+
+    async function newChatSession() {
+      try {
+        const response = await fetch("/chat/session/new", { method: "POST" });
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentSessionId = data.session_id;
+          document.getElementById("chat-box").innerHTML = "";
+          loadChatSessions();
+        } else {
+          alert("Lỗi tạo phiên mới: " + data.error);
+        }
+      } catch (err) {
+        alert("Lỗi tạo phiên mới: " + err);
+      }
+    }
+
+    async function switchToSession(sessionId) {
+      try {
+        const response = await fetch(`/chat/session/${sessionId}`, { method: "POST" });
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentSessionId = sessionId;
+          loadChatHistory(data.messages);
+          loadChatSessions(); // Refresh để update active session
+        } else {
+          alert("Lỗi chuyển phiên: " + data.error);
+        }
+      } catch (err) {
+        alert("Lỗi chuyển phiên: " + err);
+      }
+    }
+
+    async function clearAllHistory() {
+      if (!confirm("Bạn có chắc muốn xóa toàn bộ lịch sử chat?")) {
+        return;
+      }
+      
+      try {
+        const response = await fetch("/chat/clear", { method: "POST" });
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById("chat-box").innerHTML = "";
+          loadChatSessions();
+        } else {
+          alert("Lỗi xóa lịch sử: " + data.error);
+        }
+      } catch (err) {
+        alert("Lỗi xóa lịch sử: " + err);
+      }
+    }
+
+    async function loadCurrentChatHistory() {
+      try {
+        const response = await fetch("/chat/history");
+        const data = await response.json();
+        
+        if (response.ok) {
+          loadChatHistory(data.messages);
+        }
+      } catch (err) {
+        console.error("Error loading chat history:", err);
+      }
+    }
+
+    function loadChatHistory(messages) {
+      const chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML = "";
+      
+      messages.forEach(msg => {
+        if (msg.role === "user") {
+          chatBox.innerHTML += `
+            <div class="message user-msg">
+              <strong>Bạn:</strong> <p>${msg.content}</p>
+            </div>
+          `;
+        } else if (msg.role === "assistant") {
+          chatBox.innerHTML += `
+            <div class="message bot-msg">
+              <strong>DiagXpert:</strong>
+              <div class="bot-content">${formatResponse(msg.content)}</div>
+            </div>
+          `;
+        }
+      });
+      
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
     // =========================
     // Chat message
     // =========================
@@ -142,6 +368,7 @@
         </div>
       `;
       input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
         const response = await fetch("/ask", {
@@ -166,6 +393,10 @@
             <div class="bot-content">${formatResponse(data.answer)}</div>
           </div>
         `;
+        
+        // Refresh session list để cập nhật message count
+        loadChatSessions();
+        
       } catch (err) {
         chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Lỗi khi gửi yêu cầu đến server: ${err}</div></div>`;
       }
