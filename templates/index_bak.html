@@ -75,7 +75,6 @@
     .input-area {
       display: flex;
       gap: 10px;
-      margin-bottom: 10px;
     }
 
     input#user-input {
@@ -84,10 +83,6 @@
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
-    }
-
-    input#file-input {
-      flex-grow: 1;
     }
 
     button {
@@ -112,23 +107,15 @@
     <!-- Display chat messages -->
     <div class="chat-box" id="chat-box"></div>
 
-    <!-- User input area for chat -->
+    <!-- User input area -->
     <div class="input-area">
       <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
       <button onclick="sendMessage()">Gửi</button>
     </div>
-
-    <!-- File upload area -->
-    <div class="input-area">
-      <input type="file" id="file-input" />
-      <button onclick="uploadFile()">Upload File</button>
-    </div>
   </div>
 
   <script>
-    // =========================
-    // Chat message
-    // =========================
+    // Gửi câu hỏi và hiển thị phản hồi
     async function sendMessage() {
       const input = document.getElementById("user-input");
       const chatBox = document.getElementById("chat-box");
@@ -144,20 +131,14 @@
       input.value = "";
 
       try {
+        // Gửi yêu cầu tới Flask backend
         const response = await fetch("/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question }),
         });
 
-        let data;
-        if (response.ok) {
-          data = await response.json();
-        } else {
-          const text = await response.text();
-          chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Server error:<br>${text}</div></div>`;
-          return;
-        }
+        const data = await response.json();
 
         // Hiển thị câu trả lời từ chatbot
         chatBox.innerHTML += `
@@ -167,57 +148,25 @@
           </div>
         `;
       } catch (err) {
-        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Lỗi khi gửi yêu cầu đến server: ${err}</div></div>`;
+        chatBox.innerHTML += `
+          <div class="message bot-msg">
+            <div class="bot-content">❌ Lỗi khi gửi yêu cầu đến server.</div>
+          </div>
+        `;
       }
 
+      // Scroll xuống cuối khung chat
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // =========================
-    // Upload file
-    // =========================
-    async function uploadFile() {
-      const fileInput = document.getElementById("file-input");
-      const chatBox = document.getElementById("chat-box");
-      if (fileInput.files.length === 0) return;
-
-      const file = fileInput.files[0];
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Hiển thị thông báo đang upload
-      chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">⏳ Đang upload ${file.name}...</div></div>`;
-
-      try {
-        const response = await fetch("/insert_file", {
-          method: "POST",
-          body: formData  // ⚠️ Không set Content-Type, browser tự set multipart/form-data
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Server error:<br>${text}</div></div>`;
-          return;
-        }
-
-        const data = await response.json();
-        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">✅ ${data.message}</div></div>`;
-      } catch (err) {
-        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Lỗi gửi file: ${err}</div></div>`;
-      }
-
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // =========================
-    // Format response text
-    // =========================
+    // Format HTML nếu câu trả lời có list hoặc linebreak
     function formatResponse(text) {
       const html = text
         .replace(/\n{2,}/g, "<br><br>")             // đoạn mới
         .replace(/\n/g, "<br>")                     // xuống dòng
         .replace(/(?:^|\n)(\d+)\.\s/g, "<br>$1. ")  // đánh số
         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); // in đậm markdown
+
       return html;
     }
   </script>
