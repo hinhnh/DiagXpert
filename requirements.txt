@@ -3,3 +3,6 @@ python-dotenv
 tenacity>=8.0.1
 faiss-cpu
 sentence-transformers
+pip install torch transformers
+pip install torchaudio
+
