@@ -439,6 +439,3 @@ Workshop 4 đã được implement đầy đủ với:
 ---
 
 **Built with ❤️ by DiagXpert Team**
-
-*Professional AI Automotive Diagnostics with Workshop 4 Core Features*
-
