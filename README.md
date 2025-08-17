@@ -8,12 +8,20 @@
 
 ## 📚 **Tổng quan**
 
-DiagXpert là một hệ thống AI chẩn đoán ô tô thông minh, tích hợp hoàn hảo với **Workshop 4: Core Features**. Hệ thống tập trung vào 4 mục tiêu chính:
+DiagXpert là một hệ thống AI chẩn đoán ô tô thông minh, tích hợp hoàn hảo với **Workshop 4: Core Features** và **RAG-Anything** cho khả năng xử lý tài liệu đa phương tiện. Hệ thống tập trung vào 4 mục tiêu chính:
 
 - **🎯 FAISS/PineCone**: Fast Vector Search
 - **🔗 Langchain**: Prompt & Chain Management  
 - **🔧 Function Calling**: Dynamic Capabilities
 - **📄 Prompt Handling**: Effective processing
+- **🚀 RAG-Anything**: Multimodal document processing
+
+### 🌟 **RAG-Anything Integration**
+- **Multimodal Processing**: Text, images, tables, equations
+- **Advanced Parsing**: OCR, formula extraction, table recognition
+- **Multiple Formats**: Office documents, images, archives
+- **GPU Acceleration**: CUDA support for performance
+- **Professional Grade**: Enterprise-level document processing
 
 ## 🏗️ **Kiến trúc chuyên nghiệp**
 

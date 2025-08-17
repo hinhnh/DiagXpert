@@ -1,0 +1,37 @@
+HỆ THỐNG PHUN NHIÊN LIỆU Ô TÔ
+
+NGUYÊN LÝ HOẠT ĐỘNG
+Hệ thống phun nhiên liệu điện tử (EFI) sử dụng cảm biến và ECU để điều khiển chính xác lượng nhiên liệu phun vào động cơ.
+
+CÁC THÀNH PHẦN CHÍNH
+1. Bơm nhiên liệu (Fuel Pump)
+   - Cung cấp nhiên liệu với áp suất cao
+   - Đặt trong bình xăng
+   - Áp suất: 2.5-3.5 bar
+
+2. Vòi phun (Fuel Injector)
+   - Phun nhiên liệu dạng sương mù
+   - Điều khiển bởi ECU
+   - Tần số phun: 50-200Hz
+
+3. Cảm biến oxy (O2 Sensor)
+   - Đo nồng độ oxy trong khí thải
+   - Gửi tín hiệu về ECU
+   - Giúp điều chỉnh tỷ lệ nhiên liệu
+
+4. ECU (Engine Control Unit)
+   - Xử lý tín hiệu từ các cảm biến
+   - Điều khiển thời gian phun
+   - Tối ưu hóa hiệu suất
+
+CHẨN ĐOÁN SỰ CỐ
+- Động cơ khó khởi động: Kiểm tra bơm nhiên liệu
+- Tiêu hao nhiên liệu cao: Kiểm tra vòi phun
+- Động cơ rung: Kiểm tra cảm biến oxy
+- Mất công suất: Kiểm tra áp suất nhiên liệu
+
+BẢO DƯỠNG
+- Thay bộ lọc nhiên liệu mỗi 40,000km
+- Kiểm tra vòi phun mỗi 60,000km
+- Thay cảm biến oxy mỗi 100,000km
+- Kiểm tra áp suất nhiên liệu mỗi 30,000km

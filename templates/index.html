@@ -83,6 +83,33 @@
                     </div>
                 </div>
                 
+                <!-- RAG-Anything Features - New Section -->
+                <div class="rag-features-section">
+                    <h3>🚀 RAG-Anything Enhanced Processing</h3>
+                    <div class="rag-feature-grid">
+                        <div class="rag-feature-card">
+                            <div class="rag-icon">🖼️</div>
+                            <div class="rag-title">Image Processing</div>
+                            <div class="rag-desc">OCR, table extraction, formula recognition</div>
+                        </div>
+                        <div class="rag-feature-card">
+                            <div class="rag-icon">📊</div>
+                            <div class="rag-title">Spreadsheets</div>
+                            <div class="rag-desc">Excel, CSV with data analysis</div>
+                        </div>
+                        <div class="rag-feature-card">
+                            <div class="rag-icon">📋</div>
+                            <div class="rag-title">Presentations</div>
+                            <div class="rag-desc">PowerPoint with content extraction</div>
+                        </div>
+                        <div class="rag-feature-card">
+                            <div class="rag-icon">📦</div>
+                            <div class="rag-title">Archives</div>
+                            <div class="rag-desc">ZIP, RAR with batch processing</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Advanced Features - Full Width Below -->
                 <div class="workshop-features-section">
                     <div class="feature-card workshop-feature" onclick="showWorkshop4Dashboard()">
@@ -1032,6 +1059,142 @@
             .catch(error => {
                 document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
             });
+        }
+
+        // RAG-Anything Enhanced Processing Functions
+        async function testRAGProcessing() {
+            const fileInput = document.getElementById('rag-file-input');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Vui lòng chọn file để test RAG-Anything!');
+                return;
+            }
+            
+            showTestResults();
+            document.getElementById('result-content').innerHTML = '<div class="loading">🔄 Đang xử lý với RAG-Anything...</div>';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/rag/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+                } else {
+                    let resultHtml = `
+                        <div class="success">✅ ${data.message}</div>
+                        <div class="details">
+                            <h4>📄 Kết quả xử lý:</h4>
+                            <p><strong>File:</strong> ${data.filename}</p>
+                            <p><strong>Phương pháp:</strong> ${data.method}</p>
+                    `;
+                    
+                    if (data.method === 'rag_anything') {
+                        resultHtml += `
+                            <p><strong>RAG-Anything:</strong> Xử lý nâng cao hoàn thành</p>
+                            <p><strong>Output:</strong> ${data.result.output_dir}</p>
+                        `;
+                    } else {
+                        resultHtml += `
+                            <p><strong>Fallback:</strong> Xử lý cơ bản</p>
+                            <p><strong>Nội dung:</strong> ${data.text_content}</p>
+                        `;
+                    }
+                    
+                    resultHtml += '</div>';
+                    document.getElementById('result-content').innerHTML = resultHtml;
+                }
+                
+            } catch (error) {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            }
+        }
+
+        async function checkRAGStatus() {
+            showTestResults();
+            document.getElementById('result-content').innerHTML = '<div class="loading">🔄 Đang kiểm tra trạng thái RAG-Anything...</div>';
+            
+            try {
+                const response = await fetch('/rag/status');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+                } else {
+                    let statusHtml = `
+                        <div class="success">✅ Trạng thái RAG-Anything</div>
+                        <div class="details">
+                            <h4>🚀 Tích hợp RAG-Anything:</h4>
+                            <p><strong>Khả dụng:</strong> ${data.rag_anything_available ? '✅ Có' : '❌ Không'}</p>
+                            
+                            <h4>📁 Định dạng hỗ trợ:</h4>
+                            <p><strong>Tổng cộng:</strong> ${data.supported_formats.length} định dạng</p>
+                            
+                            <h4>🎯 Phân loại file:</h4>
+                    `;
+                    
+                    Object.entries(data.file_categories).forEach(([category, extensions]) => {
+                        statusHtml += `<p><strong>${category}:</strong> ${extensions.join(', ')}</p>`;
+                    });
+                    
+                    statusHtml += `
+                            <h4>⚙️ Phương pháp xử lý:</h4>
+                            <p><strong>RAG-Anything:</strong> ${data.processing_methods.rag_anything ? '✅ Có' : '❌ Không'}</p>
+                            <p><strong>Fallback:</strong> ${data.processing_methods.fallback ? '✅ Có' : '❌ Không'}</p>
+                            <p><strong>Tính năng nâng cao:</strong> ${data.processing_methods.enhanced_features ? '✅ Có' : '❌ Không'}</p>
+                        </div>
+                    `;
+                    
+                    document.getElementById('result-content').innerHTML = statusHtml;
+                }
+                
+            } catch (error) {
+                document.getElementById('result-content').innerHTML = `<div class="error">❌ Lỗi kết nối: ${error}</div>`;
+            }
+        }
+
+        // Enhanced file icon function for RAG-Anything
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch (ext) {
+                // Document formats
+                case 'pdf': return '📄';
+                case 'docx': return '📝';
+                case 'doc': return '📝';
+                case 'txt': return '📄';
+                case 'md': return '📝';
+                case 'rtf': return '📝';
+                
+                // Spreadsheet formats
+                case 'xlsx': return '📊';
+                case 'xls': return '📊';
+                case 'csv': return '📊';
+                
+                // Presentation formats
+                case 'pptx': return '📋';
+                case 'ppt': return '📋';
+                
+                // Image formats
+                case 'jpg': case 'jpeg': return '🖼️';
+                case 'png': return '🖼️';
+                case 'bmp': return '🖼️';
+                case 'tiff': return '🖼️';
+                case 'gif': return '🖼️';
+                case 'webp': return '🖼️';
+                
+                // Archive formats
+                case 'zip': return '📦';
+                case 'rar': return '📦';
+                
+                default: return '📁';
+            }
         }
 
         // Format text response to display properly

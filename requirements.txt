@@ -90,3 +90,44 @@ langchain-community==0.0.10
 PyPDF2==3.0.1
 python-docx==1.2.0
 werkzeug==2.3.7
+
+# ============================================================================
+# RAG-ANYTHING INTEGRATION (NEW)
+# ============================================================================
+
+# Core RAG-Anything
+raganything>=1.2.7
+
+# Enhanced Document Processing
+# Office Documents Support
+libreoffice-convert>=0.1.0  # LibreOffice integration
+# Image Processing
+Pillow>=10.0.0,<11.0.0     # Enhanced image support
+opencv-python>=4.8.0,<5.0.0  # Computer vision
+# Advanced PDF Processing
+pdfplumber>=0.9.0,<1.0.0   # Better PDF extraction
+# Table Extraction
+tabula-py>=2.8.0,<3.0.0    # PDF table extraction
+# Formula Processing
+sympy>=1.12.0,<2.0.0       # Mathematical formulas
+# Multimodal Support
+transformers>=4.35.0,<5.0.0  # Vision-language models
+torch>=2.0.0,<3.0.0         # PyTorch for VLM
+torchvision>=0.15.0,<1.0.0  # Computer vision models
+
+# ============================================================================
+# INSTALLATION NOTES - RAG-ANYTHING
+# ============================================================================
+
+# For full RAG-Anything support:
+# pip install raganything[all]
+
+# For specific format support:
+# pip install raganything[image]    # Image formats
+# pip install raganything[text]     # Text formats
+# pip install raganything[office]   # Office documents
+
+# System requirements:
+# - LibreOffice (for Office documents)
+# - CUDA (for GPU acceleration)
+# - FFmpeg (for video processing)

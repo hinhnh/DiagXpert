@@ -84,6 +84,12 @@ except Exception as e:
 document_processor = DocumentProcessor("uploads")
 logger.info("📁 Document processor initialized")
 
+# Check RAG-Anything availability
+if hasattr(document_processor, 'rag') and document_processor.rag:
+    logger.info("🚀 RAG-Anything integration available - Enhanced multimodal processing enabled")
+else:
+    logger.info("⚠️ RAG-Anything not available - Using fallback processing methods")
+
 # Initialize Langchain service for Workshop 4
 try:
     langchain_service = create_langchain_service()
@@ -94,6 +100,8 @@ except Exception as e:
 
 # Debug: Check document processor status
 logger.info(f"🔍 Document processor supported extensions: {document_processor.get_supported_extensions()}")
+logger.info(f"🔍 RAG-Anything available: {hasattr(document_processor, 'rag') and document_processor.rag is not None}")
+logger.info(f"🔍 Enhanced file support: {len(document_processor.get_supported_extensions())} formats")
 logger.info(f"🔍 DOCX support test: {document_processor.is_supported_file('test.docx')}")
 logger.info(f"🔍 PDF support test: {document_processor.is_supported_file('test.pdf')}")
 logger.info(f"🔍 TXT support test: {document_processor.is_supported_file('test.txt')}")
@@ -896,7 +904,11 @@ def upload_documents_endpoint():
         
         # Debug: Check document processor status
         logger.info(f"🔍 Document processor supported extensions: {document_processor.get_supported_extensions()}")
+        logger.info(f"🔍 RAG-Anything available: {hasattr(document_processor, 'rag') and document_processor.rag is not None}")
+        logger.info(f"🔍 Enhanced file support: {len(document_processor.get_supported_extensions())} formats")
         logger.info(f"🔍 DOCX support test: {document_processor.is_supported_file('test.docx')}")
+        logger.info(f"🔍 PDF support test: {document_processor.is_supported_file('test.pdf')}")
+        logger.info(f"🔍 TXT support test: {document_processor.is_supported_file('test.txt')}")
         logger.info(f"🔍 Current file support test: {document_processor.is_supported_file(files[0].filename) if files else 'No files'}")
         
         # Process uploaded documents
@@ -1188,6 +1200,130 @@ def workshop4_prompt_management():
         
     except Exception as e:
         logger.error(f"❌ Workshop 4 Prompt Management error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============================================================================
+# RAG-ANYTHING ENHANCED PROCESSING
+# ============================================================================
+
+@app.route('/rag/process', methods=['POST'])
+def rag_process_document():
+    """Process document using RAG-Anything for enhanced multimodal processing"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Check if file is supported
+        if not document_processor.is_supported_file(file.filename):
+            supported = document_processor.get_supported_extensions()
+            return jsonify({
+                'error': f'Unsupported file type. Supported: {", ".join(supported)}'
+            }), 400
+        
+        # Save file temporarily
+        filename = secure_filename(file.filename)
+        file_path = Path("uploads") / filename
+        file_path.parent.mkdir(exist_ok=True)
+        file.save(str(file_path))
+        
+        try:
+            # Try RAG-Anything processing first
+            if hasattr(document_processor, 'rag') and document_processor.rag:
+                import asyncio
+                
+                # Run async processing
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                try:
+                    result = loop.run_until_complete(
+                        document_processor.process_document_advanced(str(file_path))
+                    )
+                    loop.close()
+                    
+                    if result.get('success'):
+                        return jsonify({
+                            'success': True,
+                            'message': 'Document processed with RAG-Anything',
+                            'method': 'rag_anything',
+                            'result': result,
+                            'filename': filename
+                        })
+                    else:
+                        # Fallback to basic processing
+                        logger.warning(f"RAG-Anything failed, using fallback: {result.get('error')}")
+                        raise Exception("RAG-Anything processing failed")
+                        
+                except Exception as e:
+                    loop.close()
+                    logger.warning(f"RAG-Anything processing failed: {e}")
+                    raise Exception("RAG-Anything processing failed")
+            
+            # Fallback processing
+            result = document_processor.process_document_fallback(str(file_path))
+            
+            if 'error' in result:
+                return jsonify({'error': result['error']}), 500
+            
+            # Extract text content for vector database
+            text_content = result.get('text', '')
+            if not text_content:
+                text_content = f"Processed {filename} with fallback method"
+            
+            # Add to vector database
+            if hasattr(vector_db, 'documents'):
+                vector_db.documents.append(text_content)
+                vector_db.save(config.database.faiss_index_path, config.database.faiss_index_path)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Document processed with fallback method',
+                'method': 'fallback',
+                'result': result,
+                'filename': filename,
+                'text_content': text_content[:200] + "..." if len(text_content) > 200 else text_content
+            })
+            
+        finally:
+            # Clean up temporary file
+            try:
+                file_path.unlink()
+            except:
+                pass
+                
+    except Exception as e:
+        logger.error(f"❌ RAG processing error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/rag/status', methods=['GET'])
+def rag_status():
+    """Get RAG-Anything integration status"""
+    try:
+        rag_available = hasattr(document_processor, 'rag') and document_processor.rag is not None
+        
+        return jsonify({
+            'rag_anything_available': rag_available,
+            'supported_formats': document_processor.get_supported_extensions(),
+            'file_categories': {
+                'image': ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif', '.webp'],
+                'spreadsheet': ['.xlsx', '.xls', '.csv'],
+                'presentation': ['.pptx', '.ppt'],
+                'document': ['.pdf', '.docx', '.doc', '.rtf', '.txt', '.md'],
+                'archive': ['.zip', '.rar']
+            },
+            'processing_methods': {
+                'rag_anything': rag_available,
+                'fallback': True,
+                'enhanced_features': rag_available
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ RAG status error: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ============================================================================

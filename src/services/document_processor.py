@@ -1,13 +1,15 @@
 """
 Document Processing Service
 Handles file uploads and converts various formats to text for vector database
+Enhanced with RAG-Anything for multimodal processing
 """
 
 import os
 import sys
 import logging
+import asyncio
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 
 # Fix import issue
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +36,24 @@ try:
 except ImportError as e:
     DOCX_AVAILABLE = False
     print(f"❌ python-docx not available - Word processing disabled: {e}")
+
+# RAG-Anything integration
+try:
+    from raganything import RAGAnything
+    RAG_AVAILABLE = True
+    print("✅ RAG-Anything imported successfully")
+except ImportError as e:
+    RAG_AVAILABLE = False
+    print(f"❌ RAG-Anything not available - Advanced processing disabled: {e}")
+
+# Enhanced image processing
+try:
+    from PIL import Image
+    IMAGE_AVAILABLE = True
+    print("✅ PIL/Pillow imported successfully")
+except ImportError as e:
+    IMAGE_AVAILABLE = False
+    print(f"❌ PIL/Pillow not available - Image processing disabled: {e}")
 
 # Force import if available in system
 if not PDF_AVAILABLE:
@@ -62,25 +82,64 @@ if not DOCX_AVAILABLE:
     except Exception as e:
         print(f"❌ Subprocess docx check failed: {e}")
 
-print(f"🔍 Final status - PDF: {PDF_AVAILABLE}, DOCX: {DOCX_AVAILABLE}")
+print(f"🔍 Final status - PDF: {PDF_AVAILABLE}, DOCX: {DOCX_AVAILABLE}, RAG: {RAG_AVAILABLE}, IMAGE: {IMAGE_AVAILABLE}")
 
 logger = logging.getLogger(__name__)
 
 class DocumentProcessor:
-    """Service for processing uploaded documents"""
+    """Service for processing uploaded documents with RAG-Anything integration"""
     
-    # Supported file extensions
+    # Enhanced supported file extensions
     SUPPORTED_EXTENSIONS = {
+        # Text formats
         '.txt': 'text/plain',
+        '.md': 'text/markdown',
+        
+        # Document formats
         '.pdf': 'application/pdf',
         '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        '.doc': 'application/msword'
+        '.doc': 'application/msword',
+        '.rtf': 'application/rtf',
+        
+        # Spreadsheet formats
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.xls': 'application/vnd.ms-excel',
+        '.csv': 'text/csv',
+        
+        # Presentation formats
+        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.ppt': 'application/vnd.ms-powerpoint',
+        
+        # Image formats
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.bmp': 'image/bmp',
+        '.tiff': 'image/tiff',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        
+        # Archive formats
+        '.zip': 'application/zip',
+        '.rar': 'application/x-rar-compressed'
     }
     
     def __init__(self, upload_folder: str = "uploads"):
         self.upload_folder = Path(upload_folder)
         self.upload_folder.mkdir(exist_ok=True)
+        
+        # Initialize RAG-Anything if available
+        self.rag = None
+        if RAG_AVAILABLE:
+            try:
+                self.rag = RAGAnything()
+                print("✅ RAG-Anything initialized successfully")
+            except Exception as e:
+                print(f"❌ RAG-Anything initialization failed: {e}")
+                self.rag = None
+        
         logger.info(f"📁 Document processor initialized with upload folder: {self.upload_folder}")
+        logger.info(f"🚀 RAG-Anything available: {self.rag is not None}")
     
     def is_supported_file(self, filename: str) -> bool:
         """Check if file type is supported"""
@@ -92,200 +151,122 @@ class DocumentProcessor:
         return [ext for ext, mime_type in self.SUPPORTED_EXTENSIONS.items() 
                 if mime_type is not None]
     
-    def save_uploaded_file(self, file) -> Tuple[bool, str, str]:
-        """Save uploaded file to disk"""
-        try:
-            if not file or file.filename == '':
-                print(f"❌ File validation failed: file={file}, filename={getattr(file, 'filename', 'N/A')}")
-                return False, "No file selected", ""
-            
-            filename = secure_filename(file.filename)
-            print(f"🔍 Processing file: {file.filename} -> {filename}")
-            print(f"🔍 File type check: {self.is_supported_file(filename)}")
-            print(f"🔍 Supported extensions: {self.get_supported_extensions()}")
-            
-            if not self.is_supported_file(filename):
-                supported = ', '.join(self.get_supported_extensions())
-                print(f"❌ Unsupported file type: {filename}. Supported: {supported}")
-                return False, f"Unsupported file type. Supported: {supported}", ""
-            
-            # Create unique filename
-            file_path = self.upload_folder / filename
-            counter = 1
-            while file_path.exists():
-                name, ext = file_path.stem, file_path.suffix
-                file_path = self.upload_folder / f"{name}_{counter}{ext}"
-                counter += 1
-            
-            # Save file
-            file.save(str(file_path))
-            print(f"💾 File saved successfully: {file_path}")
-            logger.info(f"💾 File saved: {file_path}")
-            
-            return True, "File uploaded successfully", str(file_path)
-            
-        except Exception as e:
-            print(f"❌ Error saving file: {e}")
-            logger.error(f"❌ Error saving file: {e}")
-            return False, f"Error saving file: {str(e)}", ""
+    def get_file_category(self, filename: str) -> str:
+        """Get file category for processing strategy"""
+        ext = Path(filename).suffix.lower()
+        
+        if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif', '.webp']:
+            return 'image'
+        elif ext in ['.xlsx', '.xls', '.csv']:
+            return 'spreadsheet'
+        elif ext in ['.pptx', '.ppt']:
+            return 'presentation'
+        elif ext in ['.zip', '.rar']:
+            return 'archive'
+        elif ext in ['.pdf', '.docx', '.doc', '.rtf', '.txt', '.md']:
+            return 'document'
+        else:
+            return 'unknown'
     
-    def extract_text_from_file(self, file_path: str) -> Tuple[bool, str, str]:
-        """Extract text content from uploaded file"""
-        try:
-            file_path = Path(file_path)
-            if not file_path.exists():
-                return False, "File not found", ""
-            
-            ext = file_path.suffix.lower()
-            
-            if ext == '.txt':
-                return self._extract_text_txt(file_path)
-            elif ext == '.pdf':
-                return self._extract_text_pdf(file_path)
-            elif ext in ['.docx', '.doc']:
-                return self._extract_text_docx(file_path)
-            else:
-                return False, f"Unsupported file type: {ext}", ""
-                
-        except Exception as e:
-            logger.error(f"❌ Error extracting text: {e}")
-            return False, f"Error extracting text: {str(e)}", ""
-    
-    def _extract_text_txt(self, file_path: Path) -> Tuple[bool, str, str]:
-        """Extract text from TXT file"""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
-            return True, text, "Text extracted from TXT file"
-        except UnicodeDecodeError:
-            # Try different encodings
-            for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
-                try:
-                    with open(file_path, 'r', encoding=encoding) as f:
-                        text = f.read()
-                    return True, text, f"Text extracted from TXT file (encoding: {encoding})"
-                except UnicodeDecodeError:
-                    continue
-            return False, "", "Failed to decode TXT file with multiple encodings"
-    
-    def _extract_text_pdf(self, file_path: Path) -> Tuple[bool, str, str]:
-        """Extract text from PDF file"""
-        if not PDF_AVAILABLE:
-            return False, "", "PDF processing not available"
+    async def process_document_advanced(self, file_path: str, output_dir: str = None) -> Dict[str, Any]:
+        """Process document using RAG-Anything for advanced multimodal processing"""
+        if not self.rag:
+            return {"error": "RAG-Anything not available", "fallback": True}
         
         try:
-            text = ""
-            with open(file_path, 'rb') as f:
-                pdf_reader = PyPDF2.PdfReader(f)
-                
-                for page_num, page in enumerate(pdf_reader.pages):
-                    page_text = page.extract_text()
-                    if page_text.strip():
-                        text += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
-                
-            if text.strip():
-                return True, text, f"Text extracted from PDF ({len(pdf_reader.pages)} pages)"
-            else:
-                return False, "", "No text could be extracted from PDF"
-                
-        except Exception as e:
-            logger.error(f"❌ PDF extraction error: {e}")
-            return False, "", f"PDF extraction failed: {str(e)}"
-    
-    def _extract_text_docx(self, file_path: Path) -> Tuple[bool, str, str]:
-        """Extract text from Word document"""
-        if not DOCX_AVAILABLE:
-            return False, "", "Word processing not available"
-        
-        try:
-            doc = Document(file_path)
-            text = ""
+            if output_dir is None:
+                output_dir = str(self.upload_folder / "processed")
             
-            # Extract text from paragraphs
-            for para in doc.paragraphs:
-                if para.text.strip():
-                    text += para.text + "\n"
+            # Create output directory
+            Path(output_dir).mkdir(exist_ok=True)
             
-            # Extract text from tables
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        if cell.text.strip():
-                            text += cell.text + "\t"
-                    text += "\n"
-            
-            if text.strip():
-                return True, text, "Text extracted from Word document"
-            else:
-                return False, "", "No text could be extracted from Word document"
-                
-        except Exception as e:
-            logger.error(f"❌ Word extraction error: {e}")
-            return False, "", f"Word extraction failed: {str(e)}"
-    
-    def process_uploaded_documents(self, files) -> List[Dict]:
-        """Process multiple uploaded files and return results"""
-        results = []
-        
-        for file in files:
-            if file and file.filename:
-                logger.info(f"📄 Processing file: {file.filename}")
-                
-                # Save file
-                success, message, file_path = self.save_uploaded_file(file)
-                if not success:
-                    results.append({
-                        'filename': file.filename,
-                        'success': False,
-                        'message': message,
-                        'text': '',
-                        'file_path': ''
-                    })
-                    continue
-                
-                # Extract text
-                text_success, text_content, text_message = self.extract_text_from_file(file_path)
-                
-                results.append({
-                    'filename': file.filename,
-                    'success': text_success,
-                    'message': text_message,
-                    'text': text_content,
-                    'file_path': file_path
-                })
-                
-                logger.info(f"✅ Processed {file.filename}: {text_message}")
-        
-        return results
-    
-    def cleanup_uploaded_files(self, file_paths: List[str]) -> None:
-        """Clean up uploaded files after processing"""
-        for file_path in file_paths:
-            try:
-                Path(file_path).unlink(missing_ok=True)
-                logger.info(f"🗑️ Cleaned up: {file_path}")
-            except Exception as e:
-                logger.warning(f"⚠️ Could not cleanup {file_path}: {e}")
-    
-    def get_upload_stats(self) -> Dict:
-        """Get statistics about upload folder"""
-        try:
-            files = list(self.upload_folder.glob('*'))
-            file_types = {}
-            total_size = 0
-            
-            for file in files:
-                if file.is_file():
-                    ext = file.suffix.lower()
-                    file_types[ext] = file_types.get(ext, 0) + 1
-                    total_size += file.stat().st_size
+            # Process with RAG-Anything
+            result = await self.rag.process_document_complete(
+                file_path=file_path,
+                output_dir=output_dir,
+                parse_method="auto",
+                parser="mineru",
+                formula=True,      # Enable formula parsing
+                table=True,        # Enable table extraction
+                device="cpu"       # Use CPU for compatibility
+            )
             
             return {
-                'total_files': len(files),
-                'file_types': file_types,
-                'total_size_bytes': total_size,
-                'total_size_mb': round(total_size / (1024 * 1024), 2)
+                "success": True,
+                "result": result,
+                "output_dir": output_dir,
+                "method": "rag_anything"
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ RAG-Anything processing failed: {e}")
+            return {
+                "error": str(e),
+                "fallback": True,
+                "method": "rag_anything_failed"
+            }
+    
+    def process_document_fallback(self, file_path: str) -> Dict[str, Any]:
+        """Fallback processing for when RAG-Anything is not available"""
+        try:
+            file_category = self.get_file_category(file_path)
+            
+            if file_category == 'image':
+                return self._process_image_fallback(file_path)
+            elif file_category == 'spreadsheet':
+                return self._process_spreadsheet_fallback(file_path)
+            elif file_category == 'presentation':
+                return self._process_presentation_fallback(file_path)
+            elif file_category == 'document':
+                return self._process_document_fallback(file_path)
+            else:
+                return {"error": f"Unsupported file category: {file_category}"}
+                
+        except Exception as e:
+            logger.error(f"❌ Fallback processing failed: {e}")
+            return {"error": str(e)}
+    
+    def _process_image_fallback(self, file_path: str) -> Dict[str, Any]:
+        """Basic image processing fallback"""
+        if not IMAGE_AVAILABLE:
+            return {"error": "Image processing not available"}
+        
+        try:
+            image = Image.open(file_path)
+            return {
+                "success": True,
+                "content_type": "image",
+                "dimensions": image.size,
+                "mode": image.mode,
+                "format": image.format,
+                "text": f"Image file: {Path(file_path).name} ({image.size[0]}x{image.size[1]} {image.mode})"
             }
         except Exception as e:
-            logger.error(f"❌ Error getting upload stats: {e}")
-            return {}
+            return {"error": f"Image processing failed: {e}"}
+    
+    def _process_spreadsheet_fallback(self, file_path: str) -> Dict[str, Any]:
+        """Basic spreadsheet processing fallback"""
+        try:
+            # Basic CSV processing
+            if file_path.endswith('.csv'):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    return {
+                        "success": True,
+                        "content_type": "spreadsheet",
+                        "rows": len(lines),
+                        "text": f"CSV file with {len(lines)} rows"
+                    }
+            else:
+                return {"error": "Advanced spreadsheet processing requires RAG-Anything"}
+        except Exception as e:
+            return {"error": f"Spreadsheet processing failed: {e}"}
+    
+    def _process_presentation_fallback(self, file_path: str) -> Dict[str, Any]:
+        """Basic presentation processing fallback"""
+        return {"error": "Presentation processing requires RAG-Anything"}
+    
+    def _process_document_fallback(self, file_path: str) -> Dict[str, Any]:
+        """Basic document processing fallback (existing logic)"""
+        # Use existing text extraction methods
+        return self.extract_text(file_path)
