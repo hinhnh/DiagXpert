@@ -10,95 +10,54 @@
       --brand:#2e7d32; --brand-2:#1b5e20; --accent:#455a64; --danger:#c62828;
     }
     *{box-sizing:border-box}
-    body{
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      background:var(--bg); margin:0; color:#111827;
-    }
-    .page{
-      max-width:1200px; margin:24px auto; padding:0 16px;
-    }
-    header{
-      display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
-    }
-    header h1{margin:0; font-size:22px; color:#1f2937}
-    .layout{
-      display:grid; grid-template-columns: 2fr 1fr; gap:16px;
-    }
-    @media (max-width: 960px){
-      .layout{ grid-template-columns: 1fr; }
-    }
-    .card{
-      background:var(--card); border:1px solid var(--border);
-      border-radius:10px; box-shadow: 0 2px 10px rgba(0,0,0,.04);
-    }
+    body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);margin:0;color:#111827}
+    .page{max-width:1200px;margin:24px auto;padding:0 16px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    header h1{margin:0;font-size:22px;color:#1f2937}
+    .layout{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+    @media (max-width:960px){.layout{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
 
     /* Left: Chat */
-    .chat{
-      display:flex; flex-direction:column; height:80vh; min-height:540px;
-    }
-    .chat-header{
-      padding:12px 16px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; justify-content:space-between;
-    }
+    .chat{display:flex;flex-direction:column;height:80vh;min-height:560px}
+    .chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
     .chat-title{font-weight:600}
-    .chat-box{
-      flex:1; overflow:auto; padding:16px; background:#fafafa;
-    }
+    .chat-box{flex:1;overflow:auto;padding:16px;background:#fafafa}
     .message{margin-bottom:16px}
-    .user-msg p{
-      background:#e1f5fe; display:inline-block; padding:10px 12px; border-radius:10px; margin:0; white-space:pre-wrap; max-width:90%;
-    }
-    .bot-msg .bot-content{
-      background:#f1f8e9; padding:12px 14px; border-radius:10px; margin-top:6px; line-height:1.6; white-space:pre-wrap;
-    }
+    .user-msg p{background:#e1f5fe;display:inline-block;padding:10px 12px;border-radius:10px;margin:0;white-space:pre-wrap;max-width:90%}
+    .bot-msg .bot-content{background:#f1f8e9;padding:12px 14px;border-radius:10px;margin-top:6px;line-height:1.6;white-space:pre-wrap}
     .bot-content strong{color:var(--brand)}
-    .chat-input{
-      border-top:1px solid var(--border); padding:12px; display:flex; flex-direction:column; gap:10px;
-    }
-    .row{display:flex; gap:8px; flex-wrap:wrap}
-    input[type="text"]{
-      flex:1 1 420px; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:15px;
-    }
-    input[type="file"]{flex:1 1 320px}
-    button{
-      padding:10px 14px; border:0; border-radius:8px; font-size:15px; color:#fff; background:var(--brand); cursor:pointer;
-    }
+    .chat-input{border-top:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    input[type="text"]{flex:1 1 420px;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px}
+    button{padding:10px 14px;border:0;border-radius:8px;font-size:15px;color:#fff;background:var(--brand);cursor:pointer}
     button:hover{filter:brightness(.96)}
     .btn-secondary{background:var(--accent)}
     .btn-danger{background:var(--danger)}
-    .muted{color:var(--muted); font-size:13px}
+    .muted{color:var(--muted);font-size:13px}
 
-    /* Right: Info Panel with Tabs */
-    .panel{
-      display:flex; flex-direction:column; height:80vh; min-height:540px;
-    }
-    .tabs{
-      display:flex; gap:6px; padding:10px; border-bottom:1px solid var(--border);
-    }
-    .tab{
-      background:#eef2f7; color:#374151; border:1px solid var(--border);
-      padding:8px 10px; border-radius:999px; cursor:pointer; font-size:14px;
-    }
-    .tab.active{ background:var(--brand); color:#fff; border-color:transparent}
-    .panel-body{ flex:1; overflow:auto; padding:14px }
-    .panel-toolbar{ display:flex; gap:8px; margin-bottom:10px; justify-content:flex-end; }
-    .panel-section{ display:none }
-    .panel-section.active{ display:block }
-    .history-item{ margin-bottom:12px; }
-    .history-item .who{ font-weight:600; }
-    .hist-user{ color:#0b6aa2 }
-    .hist-bot{ color:var(--brand-2) }
-    .history-item .bubble{
-      margin-top:6px; padding:10px 12px; background:#f9fafb; border:1px solid var(--border); border-radius:10px;
-      white-space:pre-wrap;
-    }
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:#374151}
+    /* Right: Panel + Tabs */
+    .panel{display:flex;flex-direction:column;height:80vh;min-height:560px}
+    .tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--border)}
+    .tab{background:#eef2f7;color:#374151;border:1px solid var(--border);padding:8px 10px;border-radius:999px;cursor:pointer;font-size:14px}
+    .tab.active{background:var(--brand);color:#fff;border-color:transparent}
+    .panel-body{flex:1;overflow:auto;padding:14px}
+    .panel-toolbar{display:flex;gap:8px;margin-bottom:10px;justify-content:flex-end}
+    .panel-section{display:none}
+    .panel-section.active{display:block}
+    .history-item{margin-bottom:12px}
+    .history-item .who{font-weight:600}
+    .hist-user{color:#0b6aa2}
+    .hist-bot{color:var(--brand-2)}
+    .history-item .bubble{margin-top:6px;padding:10px 12px;background:#f9fafb;border:1px solid var(--border);border-radius:10px;white-space:pre-wrap}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#374151}
   </style>
 </head>
 <body>
   <div class="page">
     <header>
       <h1>DiagXpert</h1>
-      <div class="muted">Chat realtime (trái) • Lịch sử & tóm tắt (phải)</div>
+      <div class="muted">Chat (trái) • Lịch sử & tóm tắt & upload tài liệu (phải)</div>
     </header>
 
     <div class="layout">
@@ -115,15 +74,11 @@
             <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
             <button onclick="sendMessage()">Gửi</button>
           </div>
-          <div class="row">
-            <input type="file" id="file-input" />
-            <button class="btn-secondary" onclick="uploadFile()">Upload File</button>
-          </div>
           <div class="muted">Mẹo: Nhấn Enter để gửi nhanh</div>
         </div>
       </section>
 
-      <!-- RIGHT: INFO PANEL -->
+      <!-- RIGHT: PANEL -->
       <aside class="card panel">
         <div class="tabs">
           <button class="tab active" data-tab="tab-history" onclick="switchTab(event)">History</button>
@@ -132,28 +87,35 @@
         </div>
 
         <div class="panel-body">
-          <!-- Toolbar depends on tab -->
           <div class="panel-toolbar" id="panel-toolbar">
-            <!-- default for History -->
             <button class="btn-secondary" onclick="loadHistory()">Refresh</button>
             <button class="btn-danger" onclick="clearHistory()">Clear</button>
           </div>
 
-          <!-- Sections -->
+          <!-- History -->
           <div id="tab-history" class="panel-section active">
             <div id="history-list" class="mono muted">Chưa tải lịch sử…</div>
           </div>
 
+          <!-- Summary -->
           <div id="tab-summary" class="panel-section">
-            <div class="row" style="justify-content:flex-end; margin-bottom:8px;">
+            <div class="panel-toolbar" style="justify-content:flex-end;margin:0 0 10px 0">
               <button class="btn-secondary" onclick="viewSummary()">Refresh</button>
               <button class="btn-secondary" onclick="rebuildSummary()">Tạo lại tóm tắt</button>
             </div>
             <div id="summary-view" class="mono muted">Chưa có tóm tắt…</div>
           </div>
 
+          <!-- Files: upload tài liệu vào Vector DB -->
           <div id="tab-files" class="panel-section">
-            <div class="muted">Bạn có thể liệt kê tài liệu đã insert (tùy chọn). Hiện để trống.</div>
+            <div class="panel-toolbar" style="justify-content:flex-start;margin:0 0 10px 0">
+              <span class="muted">Chỉ hỗ trợ .pdf và .docx</span>
+            </div>
+            <div class="row">
+              <input type="file" id="doc-file" />
+              <button class="btn-secondary" onclick="uploadDoc()">Upload File</button>
+            </div>
+            <div id="files-status" class="mono muted" style="margin-top:10px">—</div>
           </div>
         </div>
       </aside>
@@ -161,7 +123,7 @@
   </div>
 
   <script>
-    /* ---------- Helpers ---------- */
+    /* ========================= Helpers ========================= */
     function escapeHtml(str){
       return String(str)
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -174,50 +136,52 @@
         .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>");
     }
 
-    /* ---------- Tabs ---------- */
+    /* ========================= Tabs ========================= */
     function switchTab(ev){
       const tabBtn = ev.currentTarget;
       const target = tabBtn.dataset.tab;
-
       document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
       tabBtn.classList.add('active');
-
       document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active'));
       document.getElementById(target).classList.add('active');
-
-      // Update toolbar by tab
       const toolbar = document.getElementById('panel-toolbar');
       if(target === 'tab-history'){
         toolbar.innerHTML = `
           <button class="btn-secondary" onclick="loadHistory()">Refresh</button>
-          <button class="btn-danger" onclick="clearHistory()">Clear</button>
-        `;
+          <button class="btn-danger" onclick="clearHistory()">Clear</button>`;
       } else if(target === 'tab-summary'){
         toolbar.innerHTML = `
           <button class="btn-secondary" onclick="viewSummary()">Refresh</button>
-          <button class="btn-secondary" onclick="rebuildSummary()">Tạo lại tóm tắt</button>
-        `;
+          <button class="btn-secondary" onclick="rebuildSummary()">Tạo lại tóm tắt</button>`;
       } else {
-        toolbar.innerHTML = `<span class="muted">Files</span>`;
+        toolbar.innerHTML = `<span class="muted">Upload tài liệu để index vào Vector DB</span>`;
       }
     }
 
-    /* ---------- Chat ---------- */
+    /* ========================= Chat ========================= */
     const chatBox = document.getElementById("chat-box");
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const input = document.getElementById("user-input");
+      input.addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMessage(); });
+      loadHistory(); viewSummary();
+    });
 
     async function sendMessage(){
       const input = document.getElementById("user-input");
-      const q = input.value.trim(); if(!q) return;
+      const q = input.value.trim();
+      if(!q) return;
 
       chatBox.innerHTML += `
         <div class="message user-msg">
-          <strong>Bạn:</strong> <p>${escapeHtml(q)}</p>
+          <strong>Bạn:</strong>
+          <p>${escapeHtml(q)}</p>
         </div>`;
       input.value = "";
 
       try{
         const res = await fetch("/ask", {
-          method:"POST", headers:{ "Content-Type":"application/json" },
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({ question: q })
         });
         if(!res.ok){
@@ -230,7 +194,6 @@
               <strong>DiagXpert:</strong>
               <div class="bot-content">${formatResponse(data.answer)}</div>
             </div>`;
-          // Sau khi trả lời xong, tự refresh panel phải (history/summary nếu đang mở)
           autoRefreshSidePanel();
         }
       }catch(err){
@@ -239,40 +202,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    document.addEventListener("DOMContentLoaded", ()=>{
-      const input = document.getElementById("user-input");
-      input.addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMessage(); });
-      // Lần đầu mở trang: nạp history & summary nhẹ
-      loadHistory();
-      viewSummary();
-    });
-
-    /* ---------- Upload ---------- */
-    async function uploadFile(){
-      const fileInput = document.getElementById("file-input");
-      if(fileInput.files.length===0) return;
-      const f = fileInput.files[0];
-      const fd = new FormData(); fd.append("file", f);
-
-      chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">⏳ Upload ${escapeHtml(f.name)}...</div></div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      try{
-        const res = await fetch("/insert_file",{ method:"POST", body: fd });
-        const text = await res.text();
-        try{
-          const data = JSON.parse(text);
-          chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">✅ ${escapeHtml(data.message || "Đã xử lý file")}</div></div>`;
-        }catch{
-          chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Server response:<br>${escapeHtml(text)}</div></div>`;
-        }
-      }catch(err){
-        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Lỗi gửi file: ${escapeHtml(String(err))}</div></div>`;
-      }
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    /* ---------- History ---------- */
+    /* ========================= History ========================= */
     async function loadHistory(){
       const wrap = document.getElementById("history-list");
       wrap.textContent = "Đang tải lịch sử…";
@@ -309,7 +239,7 @@
       }
     }
 
-    /* ---------- Summary ---------- */
+    /* ========================= Summary ========================= */
     async function viewSummary(){
       const box = document.getElementById("summary-view");
       box.textContent = "Đang tải tóm tắt…";
@@ -340,9 +270,30 @@
       }
     }
 
-    /* ---------- Sync helpers ---------- */
+    /* ========================= Files (index vào Vector DB) ========================= */
+    async function uploadDoc(){
+      const fileInput = document.getElementById("doc-file");
+      const status = document.getElementById("files-status");
+      if(fileInput.files.length===0){ status.textContent = "Chưa chọn file."; return; }
+      const file = fileInput.files[0];
+      const fd = new FormData(); fd.append("file", file);
+      status.textContent = `⏳ Upload ${file.name}...`;
+      try{
+        const res = await fetch("/insert_file", { method:"POST", body: fd });
+        if(!res.ok){
+          const text = await res.text();
+          status.textContent = `❌ Server error: ${text}`;
+          return;
+        }
+        const data = await res.json();
+        status.textContent = `✅ ${data.message || "Đã xử lý file."}`;
+      }catch(e){
+        status.textContent = "❌ Lỗi upload.";
+      }
+    }
+
+    /* ========================= Sync side panel sau khi chat ========================= */
     function autoRefreshSidePanel(){
-      // Nếu đang ở tab History → refresh; nếu ở Summary → refresh nhẹ
       const active = document.querySelector('.panel-section.active')?.id;
       if(active === 'tab-history') loadHistory();
       if(active === 'tab-summary') viewSummary();

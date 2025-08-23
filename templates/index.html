@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -57,24 +57,24 @@
   <div class="page">
     <header>
       <h1>DiagXpert</h1>
-      <div class="muted">Chat (trái) • Lịch sử & tóm tắt & upload tài liệu (phải)</div>
+      <div class="muted">Chat (left) • History / Summary / Upload (right)</div>
     </header>
 
     <div class="layout">
       <!-- LEFT: CHAT -->
       <section class="card chat">
         <div class="chat-header">
-          <div class="chat-title">Cửa sổ chat</div>
+          <div class="chat-title">Chat Window</div>
         </div>
 
         <div class="chat-box" id="chat-box"></div>
 
         <div class="chat-input">
           <div class="row">
-            <input type="text" id="user-input" placeholder="Hỏi DiagXpert về quy trình kỹ thuật…" />
-            <button onclick="sendMessage()">Gửi</button>
+            <input type="text" id="user-input" placeholder="Ask DiagXpert about procedures or diagnostics…" />
+            <button onclick="sendMessage()">Send</button>
           </div>
-          <div class="muted">Mẹo: Nhấn Enter để gửi nhanh</div>
+          <div class="muted">Tip: Press Enter to send</div>
         </div>
       </section>
 
@@ -87,33 +87,29 @@
         </div>
 
         <div class="panel-body">
+          <!-- Single dynamic toolbar (no duplicates) -->
           <div class="panel-toolbar" id="panel-toolbar">
+            <!-- default for History -->
             <button class="btn-secondary" onclick="loadHistory()">Refresh</button>
             <button class="btn-danger" onclick="clearHistory()">Clear</button>
           </div>
 
           <!-- History -->
           <div id="tab-history" class="panel-section active">
-            <div id="history-list" class="mono muted">Chưa tải lịch sử…</div>
+            <div id="history-list" class="mono muted">History not loaded yet…</div>
           </div>
 
-          <!-- Summary -->
+          <!-- Summary (no inner toolbar here to avoid duplicates) -->
           <div id="tab-summary" class="panel-section">
-            <div class="panel-toolbar" style="justify-content:flex-end;margin:0 0 10px 0">
-              <button class="btn-secondary" onclick="viewSummary()">Refresh</button>
-              <button class="btn-secondary" onclick="rebuildSummary()">Tạo lại tóm tắt</button>
-            </div>
-            <div id="summary-view" class="mono muted">Chưa có tóm tắt…</div>
+            <div id="summary-view" class="mono muted">No summary yet…</div>
           </div>
 
-          <!-- Files: upload tài liệu vào Vector DB -->
+          <!-- Files: upload documents into Vector DB -->
           <div id="tab-files" class="panel-section">
-            <div class="panel-toolbar" style="justify-content:flex-start;margin:0 0 10px 0">
-              <span class="muted">Chỉ hỗ trợ .pdf và .docx</span>
-            </div>
+            <div class="mono muted" style="margin-bottom:8px">Supported: .pdf, .docx</div>
             <div class="row">
               <input type="file" id="doc-file" />
-              <button class="btn-secondary" onclick="uploadDoc()">Upload File</button>
+              <button class="btn-secondary" onclick="uploadDoc()">Upload</button>
             </div>
             <div id="files-status" class="mono muted" style="margin-top:10px">—</div>
           </div>
@@ -140,10 +136,14 @@
     function switchTab(ev){
       const tabBtn = ev.currentTarget;
       const target = tabBtn.dataset.tab;
+
       document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
       tabBtn.classList.add('active');
+
       document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active'));
       document.getElementById(target).classList.add('active');
+
+      // Dynamic toolbar per tab (only one toolbar in DOM)
       const toolbar = document.getElementById('panel-toolbar');
       if(target === 'tab-history'){
         toolbar.innerHTML = `
@@ -152,9 +152,9 @@
       } else if(target === 'tab-summary'){
         toolbar.innerHTML = `
           <button class="btn-secondary" onclick="viewSummary()">Refresh</button>
-          <button class="btn-secondary" onclick="rebuildSummary()">Tạo lại tóm tắt</button>`;
+          <button class="btn-secondary" onclick="rebuildSummary()">Rebuild</button>`;
       } else {
-        toolbar.innerHTML = `<span class="muted">Upload tài liệu để index vào Vector DB</span>`;
+        toolbar.innerHTML = `<span class="muted">Upload a document to index into Vector DB</span>`;
       }
     }
 
@@ -163,6 +163,7 @@
     document.addEventListener("DOMContentLoaded", ()=>{
       const input = document.getElementById("user-input");
       input.addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMessage(); });
+      // Initial load
       loadHistory(); viewSummary();
     });
 
@@ -173,7 +174,7 @@
 
       chatBox.innerHTML += `
         <div class="message user-msg">
-          <strong>Bạn:</strong>
+          <strong>You:</strong>
           <p>${escapeHtml(q)}</p>
         </div>`;
       input.value = "";
@@ -197,7 +198,7 @@
           autoRefreshSidePanel();
         }
       }catch(err){
-        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Lỗi gửi yêu cầu: ${escapeHtml(String(err))}</div></div>`;
+        chatBox.innerHTML += `<div class="message bot-msg"><div class="bot-content">❌ Send error: ${escapeHtml(String(err))}</div></div>`;
       }
       chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -205,14 +206,14 @@
     /* ========================= History ========================= */
     async function loadHistory(){
       const wrap = document.getElementById("history-list");
-      wrap.textContent = "Đang tải lịch sử…";
+      wrap.textContent = "Loading history…";
       try{
         const res = await fetch("/history");
-        if(!res.ok){ wrap.textContent = "Không tải được lịch sử."; return; }
+        if(!res.ok){ wrap.textContent = "Failed to load history."; return; }
         const data = await res.json();
         const hist = data.history || [];
         wrap.innerHTML = hist.map(h=>{
-          const who = h.role==="user" ? "Bạn" : "DiagXpert";
+          const who = h.role==="user" ? "You" : "DiagXpert";
           const whoCls = h.role==="user" ? "hist-user" : "hist-bot";
           const content = h.role==="user" ? escapeHtml(h.content) : formatResponse(h.content);
           const time = h.created_at ? `<div class="muted">${escapeHtml(h.created_at)}</div>` : "";
@@ -222,9 +223,9 @@
               <div class="bubble">${content}</div>
               ${time}
             </div>`;
-        }).join("") || `<div class="muted">— Trống —</div>`;
+        }).join("") || `<div class="muted">— Empty —</div>`;
       }catch(e){
-        wrap.textContent = "Lỗi tải lịch sử.";
+        wrap.textContent = "Error loading history.";
       }
     }
 
@@ -233,30 +234,30 @@
       try{
         const res = await fetch("/clear_history",{ method:"POST" });
         const data = await res.json();
-        wrap.innerHTML = `<div class="muted">${escapeHtml(data.message || "Đã xóa lịch sử.")}</div>`;
+        wrap.innerHTML = `<div class="muted">${escapeHtml(data.message || "History cleared.")}</div>`;
       }catch(e){
-        wrap.innerHTML = `<div class="muted">Lỗi xóa lịch sử.</div>`;
+        wrap.innerHTML = `<div class="muted">Error clearing history.</div>`;
       }
     }
 
     /* ========================= Summary ========================= */
     async function viewSummary(){
       const box = document.getElementById("summary-view");
-      box.textContent = "Đang tải tóm tắt…";
+      box.textContent = "Loading summary…";
       try{
         const res = await fetch("/summary");
         const data = await res.json();
         box.innerHTML = (data.summary && data.summary.trim())
           ? formatResponse(data.summary)
-          : `<span class="muted">— Chưa có tóm tắt —</span>`;
+          : `<span class="muted">— No summary yet —</span>`;
       }catch(e){
-        box.innerHTML = `<span class="muted">Lỗi tải tóm tắt.</span>`;
+        box.innerHTML = `<span class="muted">Error loading summary.</span>`;
       }
     }
 
     async function rebuildSummary(){
       const box = document.getElementById("summary-view");
-      box.innerHTML = `⏳ Đang tạo lại tóm tắt…`;
+      box.innerHTML = `⏳ Rebuilding summary…`;
       try{
         const res = await fetch("/rebuild_summary", { method:"POST" });
         const data = await res.json();
@@ -266,18 +267,18 @@
           box.innerHTML = `✅ ${escapeHtml(data.message)}<br><br>${formatResponse(data.summary || "")}`;
         }
       }catch(e){
-        box.innerHTML = `❌ Lỗi tạo lại tóm tắt.`;
+        box.innerHTML = `❌ Error rebuilding summary.`;
       }
     }
 
-    /* ========================= Files (index vào Vector DB) ========================= */
+    /* ========================= Files (index into Vector DB) ========================= */
     async function uploadDoc(){
       const fileInput = document.getElementById("doc-file");
       const status = document.getElementById("files-status");
-      if(fileInput.files.length===0){ status.textContent = "Chưa chọn file."; return; }
+      if(fileInput.files.length===0){ status.textContent = "No file selected."; return; }
       const file = fileInput.files[0];
       const fd = new FormData(); fd.append("file", file);
-      status.textContent = `⏳ Upload ${file.name}...`;
+      status.textContent = `⏳ Uploading ${file.name}…`;
       try{
         const res = await fetch("/insert_file", { method:"POST", body: fd });
         if(!res.ok){
@@ -286,13 +287,13 @@
           return;
         }
         const data = await res.json();
-        status.textContent = `✅ ${data.message || "Đã xử lý file."}`;
+        status.textContent = `✅ ${data.message || "File processed."}`;
       }catch(e){
-        status.textContent = "❌ Lỗi upload.";
+        status.textContent = "❌ Upload error.";
       }
     }
 
-    /* ========================= Sync side panel sau khi chat ========================= */
+    /* ========================= Keep side panel in sync after chatting ========================= */
     function autoRefreshSidePanel(){
       const active = document.querySelector('.panel-section.active')?.id;
       if(active === 'tab-history') loadHistory();

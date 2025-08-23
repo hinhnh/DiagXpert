@@ -24,16 +24,16 @@ logger = logging.getLogger(__name__)
 # Flask setup
 # =========================
 app = Flask(__name__)
-# Giới hạn request (tài liệu PDF/DOCX đủ dùng). Có thể nâng qua ENV nếu cần.
+# Limit request size (PDF/DOCX). Adjust via MAX_REQUEST_MB if needed.
 app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("MAX_REQUEST_MB", "32")) * 1024 * 1024
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 
-# Lịch sử đưa lên model: số lượt gần nhất (user+assistant = 1 lượt)
+# History window for model (user+assistant = 1 turn)
 MAX_TURNS = int(os.getenv("CHAT_HISTORY_MAX_TURNS", "10"))
 
-# Auto-summary cấu hình
-SUMMARY_TRIGGER_MSGS = int(os.getenv("SUMMARY_TRIGGER_MSGS", "30"))       # bắt đầu tạo summary sau 30 message
-SUMMARY_EVERY_N_MSGS = int(os.getenv("SUMMARY_EVERY_N_MSGS", "10"))       # sau đó cứ mỗi 10 message sẽ làm mới
+# Auto-summary config
+SUMMARY_TRIGGER_MSGS = int(os.getenv("SUMMARY_TRIGGER_MSGS", "30"))
+SUMMARY_EVERY_N_MSGS = int(os.getenv("SUMMARY_EVERY_N_MSGS", "10"))
 SUMMARY_MAX_INPUT_CHARS = int(os.getenv("SUMMARY_MAX_INPUT_CHARS", "16000"))
 
 # =========================
@@ -44,14 +44,7 @@ client_chat = AzureOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT_CHAT"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY_CHAT"),
 )
-client_embed = AzureOpenAI(
-    api_version="2024-07-01-preview",
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT_EMBED"),
-    api_key=os.getenv("AZURE_OPENAI_API_KEY_EMBED"),
-)
-
 chat_model = os.getenv("AZURE_OPENAI_CHAT_MODEL", "GPT-4o-mini")
-embedding_model = os.getenv("AZURE_OPENAI_MODEL_EMBED", "text-embedding-3-small")
 
 # =========================
 # Vector DB
@@ -129,7 +122,7 @@ def count_messages(session_id: str) -> int:
     return int(row["c"] or 0)
 
 def fetch_history(session_id: str, max_turns: int) -> list[dict]:
-    """Trả về 2*max_turns messages gần nhất (thứ tự cũ → mới)."""
+    """Return the last 2*max_turns messages (oldest → newest)."""
     limit = max_turns * 2
     with _get_conn() as conn:
         rows = conn.execute(
@@ -192,7 +185,7 @@ def build_summary_text_from_history(rows: list[sqlite3.Row]) -> str:
     lines = [f"{r['role'].upper()}: {r['content']}" for r in rows]
     joined = "\n".join(lines)
     if len(joined) > SUMMARY_MAX_INPUT_CHARS:
-        joined = joined[-SUMMARY_MAX_INPUT_CHARS:]  # lấy đoạn gần đây
+        joined = joined[-SUMMARY_MAX_INPUT_CHARS:]  # keep recent part
     return joined
 
 def generate_summary(session_id: str) -> str:
@@ -322,11 +315,7 @@ def insert_file():
         logger.info(f"📦 Split into {len(chunks)} chunks for file: {filename}")
 
         for i, chunk in enumerate(chunks):
-            embedding_resp = client_embed.embeddings.create(
-                model=embedding_model,
-                input=chunk
-            )
-            _ = embedding_resp.data[0].embedding
+            # ⚠️ Không gọi Azure Embedding ở đây; VectorDatabase tự encode khi insert
             vector_db.insert_text(chunk, metadata={"source": filename, "chunk": i})
             logger.info(f"🔹 Inserted chunk {i+1}/{len(chunks)}")
 
@@ -359,20 +348,31 @@ def ask():
         # RAG context
         results = vector_db.query_with_metadata(user_input, top_k=3)
         context_list = []
-        for doc, score, meta in results:
-            score_val = score.get("distance", score.get("score", 0)) if isinstance(score, dict) else score
+        for doc, meta, distance in results:  # đúng thứ tự: text, metadata, distance
             context_list.append(doc)
-            logger.info("🔹 Retrieved: %.60s... | score=%s | metadata=%s", doc, repr(score_val), repr(meta))
+            # log thêm similarity nếu bạn muốn (giả định cosine/L2 gần đúng)
+            try:
+                sim = 1.0 - float(distance)
+                logger.info(
+                    "🔹 Retrieved: %.60s... | distance=%.6f | similarity=%.4f | source=%s | chunk=%s",
+                    doc, float(distance), sim, meta.get("source"), meta.get("chunk")
+                )
+            except Exception:
+                logger.info(
+                    "🔹 Retrieved: %.60s... | distance=%s | source=%s | chunk=%s",
+                    doc, repr(distance), meta.get("source"), meta.get("chunk")
+                )
+
         context = "\n---\n".join(context_list)
 
-        # Lịch sử + summary
+        # History + summary
         hist = fetch_history(session_id, MAX_TURNS)
         summary_text = get_summary(session_id)
 
         # Build messages (text-only)
         messages = _build_messages_with_history(context, user_input, hist, summary_text)
 
-        # Gọi model
+        # Call model
         response = client_chat.chat.completions.create(
             model=chat_model,
             messages=messages,
@@ -380,7 +380,7 @@ def ask():
         )
         answer = response.choices[0].message.content.strip()
 
-        # Lưu lịch sử
+        # Save history
         save_message(session_id, "user", user_input)
         save_message(session_id, "assistant", answer)
         maybe_update_summary(session_id)

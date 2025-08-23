@@ -42,7 +42,8 @@ class VectorDatabase:
             self.metadatas = metadatas
 
         logger.info(f"📝 Preparing {len(self.documents)} documents for indexing...")
-        vectors = self.model.encode(self.documents, show_progress_bar=True).astype("float32")
+        # Tắt progress bar để không spam console
+        vectors = self.model.encode(self.documents, show_progress_bar=False).astype("float32")
         logger.info(f"🔍 Creating FAISS index with dimension {vectors.shape[1]}")
         self.index = faiss.IndexFlatL2(vectors.shape[1])
         self.index.add(vectors)
@@ -57,7 +58,7 @@ class VectorDatabase:
             logger.warning("⚠️ Attempted to insert empty text chunk. Skipping.")
             return
 
-        vec = self.model.encode([text]).astype("float32")
+        vec = self.model.encode([text], show_progress_bar=False).astype("float32")
         if self.index is None:
             logger.info("📌 Index not found. Creating new FAISS index.")
             self.index = faiss.IndexFlatL2(vec.shape[1])
@@ -70,16 +71,20 @@ class VectorDatabase:
     def query(self, query_text: str, top_k: int = 3) -> List[Tuple[str, float]]:
         """
         Query top-k documents without metadata.
+        Returns: List of (text, distance)
         """
         if self.index is None or not self.documents:
             raise ValueError("❌ Index or documents are not loaded or built.")
 
-        logger.info(f"🔎 Searching top {top_k} matches for: \"{query_text}\"")
-        query_vec = self.model.encode([query_text]).astype("float32")
-        distances, indices = self.index.search(query_vec, top_k)
+        k = min(top_k, len(self.documents))
+        logger.info(f"🔎 Searching top {k} matches for: \"{query_text}\"")
+        query_vec = self.model.encode([query_text], show_progress_bar=False).astype("float32")
+        distances, indices = self.index.search(query_vec, k)
 
-        results = []
+        results: List[Tuple[str, float]] = []
         for i, dist in zip(indices[0], distances[0]):
+            if i == -1:
+                continue
             results.append((self.documents[i], float(dist)))
         logger.info(f"✅ Found {len(results)} results.")
         return results
@@ -91,12 +96,15 @@ class VectorDatabase:
         if self.index is None or not self.documents:
             raise ValueError("❌ Index or documents are not loaded or built.")
 
-        logger.info(f"🔎 Searching top {top_k} matches (with metadata) for: \"{query_text}\"")
-        query_vec = self.model.encode([query_text]).astype("float32")
-        distances, indices = self.index.search(query_vec, top_k)
+        k = min(top_k, len(self.documents))
+        logger.info(f"🔎 Searching top {k} matches (with metadata) for: \"{query_text}\"")
+        query_vec = self.model.encode([query_text], show_progress_bar=False).astype("float32")
+        distances, indices = self.index.search(query_vec, k)
 
-        results = []
+        results: List[Tuple[str, Dict, float]] = []
         for i, dist in zip(indices[0], distances[0]):
+            if i == -1:
+                continue
             results.append((self.documents[i], self.metadatas[i], float(dist)))
         logger.info(f"✅ Found {len(results)} results with metadata.")
         return results
